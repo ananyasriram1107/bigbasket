@@ -1,0 +1,2 @@
+1. fuzzy matching for answers
+2. it doesn't remember anyone between app restarts — there's no permanent save file, so everyone starts fresh each time the server restarts. There's no login. And right now it has zero visuals — no colors, no buttons, no animations — because that's not the backend's job. Your engine decides what should happen; your teammates are building the parts that make it look and feel like a real game.
