@@ -1,12 +1,25 @@
 import { useEffect, useRef, useState } from "react";
+import XPBar from "../gamification/components/XPBar";
+import StreakFlame from "../gamification/components/StreakFlame";
+import AnswerFlash from "../gamification/components/AnswerFlash";
+import BadgeToast from "../gamification/components/BadgeToast";
+import { useGamification } from "../gamification/useGamification";
 
 const QUESTION_SECONDS = 15;
 
 export default function PlayScreen({ gameState, onAnswer }) {
   const [secondsLeft, setSecondsLeft] = useState(QUESTION_SECONDS);
+  const [flashStatus, setFlashStatus] = useState(null);
   const submittedRef = useRef(false);
 
   const question = gameState.currentQuestion;
+
+  const {
+    progressPercent,
+    streakLabel,
+    activeBadge,
+    dismissBadge,
+  } = useGamification(gameState);
 
   useEffect(() => {
     setSecondsLeft(QUESTION_SECONDS);
@@ -37,6 +50,20 @@ export default function PlayScreen({ gameState, onAnswer }) {
 
     return () => clearInterval(intervalId);
   }, [question?.id, gameState.isLoading, onAnswer]);
+
+  useEffect(() => {
+    if (!gameState.lastResult) {
+      return undefined;
+    }
+
+    setFlashStatus(gameState.lastResult.correct ? "correct" : "wrong");
+
+    const timerId = setTimeout(() => {
+      setFlashStatus(null);
+    }, 900);
+
+    return () => clearTimeout(timerId);
+  }, [gameState.lastResult]);
 
   function chooseAnswer(answer) {
     if (gameState.isLoading || submittedRef.current) {
@@ -72,10 +99,11 @@ export default function PlayScreen({ gameState, onAnswer }) {
           <strong>{gameState.tier}</strong>
         </div>
 
-        <div>
-          <span className="eyebrow">XP</span>
-          <strong>{gameState.totalXp}</strong>
-        </div>
+        <XPBar
+          xp={gameState.totalXp}
+          level={gameState.level}
+          progressPercent={progressPercent}
+        />
 
         <div className={secondsLeft <= 5 ? "timer timer--urgent" : "timer"}>
           <span className="eyebrow">Time</span>
@@ -83,22 +111,17 @@ export default function PlayScreen({ gameState, onAnswer }) {
         </div>
       </header>
 
+      <StreakFlame
+        streak={gameState.correctStreak}
+        label={streakLabel}
+      />
+
+      <AnswerFlash status={flashStatus} />
+
+      <BadgeToast badge={activeBadge} onClose={dismissBadge} />
+
       {gameState.error && (
         <p className="connection-error">{gameState.error}</p>
-      )}
-
-      {gameState.lastResult && (
-        <p
-          className={
-            gameState.lastResult.correct
-              ? "answer-feedback answer-feedback--correct"
-              : "answer-feedback answer-feedback--wrong"
-          }
-        >
-          {gameState.lastResult.correct
-            ? `Correct! +${gameState.lastResult.xp_earned} XP`
-            : "Not quite — try the next one!"}
-        </p>
       )}
 
       <section className="question-card">
