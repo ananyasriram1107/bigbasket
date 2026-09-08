@@ -3,7 +3,7 @@ import random
 import sys
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -34,6 +34,7 @@ from course_content import (
 from ai.question_bank import MCQ_QUESTIONS as LANG_MCQ_QUESTIONS
 from ai.question_bank import SHORT_ANSWER_QUESTIONS as LANG_SHORT_ANSWER_QUESTIONS
 from ai.short_ans import grade_short_answer
+from pdf_course import PdfProcessingError, course_metadata, load_uploaded_courses, process_pdf_upload
 
 app = FastAPI()
 
@@ -57,7 +58,32 @@ class AnswerRequest(BaseModel):
 
 
 # ---- Question bank: every course's content, combined and indexed ----
-ALL_QUESTIONS = (
+ALL_QUESTIONS: list[dict] = []
+QUESTIONS_BY_ID: dict[str, dict] = {}
+
+# (courseId, mode) -> [questions]   and   (courseId, mode) -> {tier: [questions]}
+QUESTIONS_BY_COURSE_MODE: dict[tuple[str, str], list[dict]] = {}
+QUESTIONS_BY_COURSE_MODE_TIER: dict[tuple[str, str], dict[int, list[dict]]] = {}
+
+# Metadata (no question content) for every PDF-derived course uploaded so
+# far this run -- /courses/custom serves this straight to the front page.
+UPLOADED_COURSE_METADATA: list[dict] = []
+
+
+def register_questions(questions: list[dict]) -> None:
+    """Folds a batch of questions into every in-memory index. Called once at
+    startup for the built-in banks + any already-uploaded PDF courses, and
+    again for each new PDF upload -- so a freshly generated course is
+    playable immediately, with no restart required."""
+    for q in questions:
+        ALL_QUESTIONS.append(q)
+        QUESTIONS_BY_ID[str(q["id"])] = q
+        key = (q["courseId"], q["mode"])
+        QUESTIONS_BY_COURSE_MODE.setdefault(key, []).append(q)
+        QUESTIONS_BY_COURSE_MODE_TIER.setdefault(key, {}).setdefault(q["tier"], []).append(q)
+
+
+register_questions(
     OS_QUESTIONS
     + OS_SHORT_ANSWER
     + DBMS_QUESTIONS
@@ -68,15 +94,11 @@ ALL_QUESTIONS = (
     + LANG_SHORT_ANSWER_QUESTIONS
 )
 
-QUESTIONS_BY_ID = {str(q["id"]): q for q in ALL_QUESTIONS}
-
-# (courseId, mode) -> [questions]   and   (courseId, mode) -> {tier: [questions]}
-QUESTIONS_BY_COURSE_MODE: dict[tuple[str, str], list[dict]] = {}
-QUESTIONS_BY_COURSE_MODE_TIER: dict[tuple[str, str], dict[int, list[dict]]] = {}
-for q in ALL_QUESTIONS:
-    key = (q["courseId"], q["mode"])
-    QUESTIONS_BY_COURSE_MODE.setdefault(key, []).append(q)
-    QUESTIONS_BY_COURSE_MODE_TIER.setdefault(key, {}).setdefault(q["tier"], []).append(q)
+# Re-register whatever PDF courses were uploaded (and persisted) in a
+# previous run, so they don't disappear every time the server restarts.
+for _course in load_uploaded_courses():
+    register_questions(_course["questions"])
+    UPLOADED_COURSE_METADATA.append(course_metadata(_course))
 
 DEFAULT_COURSE = "os"
 DEFAULT_MODE = "mcq"
@@ -138,6 +160,33 @@ def grade(question: dict, answer: Optional[str]):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/courses/custom")
+def get_custom_courses():
+    """PDF-derived courses uploaded so far -- the front page merges these
+    into its static OS/DBMS/DSA/Programming Languages course grid."""
+    return UPLOADED_COURSE_METADATA
+
+
+@app.post("/courses/upload")
+async def upload_course_pdf(file: UploadFile = File(...), title: str = Form("Custom Upload")):
+    if file.content_type not in ("application/pdf", "application/x-pdf") and not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Please upload a PDF file.")
+
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="That file is empty.")
+
+    try:
+        course = process_pdf_upload(file_bytes, title)
+    except PdfProcessingError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    register_questions(course["questions"])
+    metadata = course_metadata(course)
+    UPLOADED_COURSE_METADATA.append(metadata)
+    return metadata
 
 
 @app.get("/questions/all")

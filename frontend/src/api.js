@@ -213,3 +213,35 @@ export async function submitAnswer(payload) {
     };
   }
 }
+
+// PDF-derived courses a player has uploaded (backend/pdf_course.py). Unlike
+// getFirstQuestion/submitAnswer, this one has no offline fallback -- there's
+// nothing to derive a custom course from without the backend to run
+// extraction/generation, so an empty list is the honest degrade.
+export async function fetchCustomCourses() {
+  try {
+    const response = await fetchWithRetry(`${API_BASE_URL}/courses/custom`);
+    return await response.json();
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function uploadCoursePdf(file, title) {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("title", title);
+
+  const response = await fetch(`${API_BASE_URL}/courses/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const detail = Array.isArray(body.detail) ? body.detail[0]?.msg : body.detail;
+    throw new Error(detail || `Upload failed (${response.status})`);
+  }
+
+  return await response.json();
+}

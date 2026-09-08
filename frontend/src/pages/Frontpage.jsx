@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import explorerSprite from "../assets/mascot-correct.png";
 import questBg from "../assets/pixel-quest-result-bg.png";
 import { COURSES } from "../courses";
+import { fetchCustomCourses, uploadCoursePdf } from "../api";
 
 const MODES = [
   {
@@ -23,11 +24,48 @@ const MODES = [
 export default function FrontPage({ onLaunchSession }) {
   const [stage, setStage] = useState("start");
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [customCourses, setCustomCourses] = useState([]);
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState("idle"); // idle | loading | error
+  const [uploadError, setUploadError] = useState("");
+
+  useEffect(() => {
+    fetchCustomCourses().then(setCustomCourses);
+  }, []);
+
+  const allCourses = [...COURSES, ...customCourses];
 
   const selectCourse = (course) => {
     setSelectedCourse(course);
     setStage("modes");
   };
+
+  async function submitUpload(event) {
+    event.preventDefault();
+
+    if (!uploadFile || uploadStatus === "loading") {
+      return;
+    }
+
+    setUploadStatus("loading");
+    setUploadError("");
+
+    try {
+      const course = await uploadCoursePdf(
+        uploadFile,
+        uploadTitle.trim() || uploadFile.name.replace(/\.pdf$/i, "")
+      );
+      setCustomCourses((prev) => [...prev, course]);
+      setUploadStatus("idle");
+      setUploadTitle("");
+      setUploadFile(null);
+      selectCourse(course);
+    } catch (error) {
+      setUploadStatus("error");
+      setUploadError(error.message || "Something went wrong generating questions from that PDF.");
+    }
+  }
 
   const selectMode = (mode) => {
     onLaunchSession?.({
@@ -111,7 +149,7 @@ export default function FrontPage({ onLaunchSession }) {
             </div>
 
             <div className="course-grid">
-              {COURSES.map((course, index) => (
+              {allCourses.map((course, index) => (
                 <button
                   className="pixel-card"
                   key={course.id}
@@ -137,7 +175,96 @@ export default function FrontPage({ onLaunchSession }) {
                   </div>
                 </button>
               ))}
+
+              <button
+                className="pixel-card pixel-card--upload"
+                onClick={() => setStage("upload")}
+              >
+                <div className="card-number">
+                  YOUR OWN
+                </div>
+
+                <div className="card-icon">
+                  ⬆
+                </div>
+
+                <div className="card-info">
+                  <span>PDF</span>
+                  <h3>Upload Your Own</h3>
+                  <p>Turn any PDF into a quest -- we'll generate the questions.</p>
+                </div>
+
+                <div className="card-action">
+                  UPLOAD
+                  <b>▶</b>
+                </div>
+              </button>
             </div>
+
+          </section>
+        )}
+
+        {/* UPLOAD SCREEN */}
+        {stage === "upload" && (
+          <section className="selection-screen">
+
+            <div className="selection-heading">
+              <div>
+                <div className="pixel-small-title">
+                  QUEST 01
+                </div>
+
+                <h2 className="pixel-gold-text pixel-gold-text--md">UPLOAD A PDF</h2>
+
+                <p>
+                  We'll read it and generate multiple-choice and short-answer questions.
+                </p>
+              </div>
+
+              <button
+                className="pixel-back"
+                onClick={() => setStage("courses")}
+              >
+                ◀ BACK
+              </button>
+            </div>
+
+            <form className="upload-panel" onSubmit={submitUpload}>
+              <label className="upload-field">
+                <span>COURSE NAME</span>
+                <input
+                  type="text"
+                  value={uploadTitle}
+                  onChange={(event) => setUploadTitle(event.target.value)}
+                  placeholder="e.g. Thermodynamics Notes"
+                  disabled={uploadStatus === "loading"}
+                />
+              </label>
+
+              <label className="upload-field upload-field--file">
+                <span>PDF FILE</span>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(event) => setUploadFile(event.target.files?.[0] || null)}
+                  disabled={uploadStatus === "loading"}
+                />
+                {uploadFile && <em>{uploadFile.name}</em>}
+              </label>
+
+              {uploadStatus === "error" && (
+                <p className="upload-error">{uploadError}</p>
+              )}
+
+              <button
+                type="submit"
+                className="pixel-start upload-submit"
+                disabled={!uploadFile || uploadStatus === "loading"}
+              >
+                {uploadStatus === "loading" ? "GENERATING QUESTIONS…" : "GENERATE QUEST"}
+                <span>▶</span>
+              </button>
+            </form>
 
           </section>
         )}
@@ -599,6 +726,110 @@ export default function FrontPage({ onLaunchSession }) {
         .card-action b,
         .mode-action b {
           color: #a4501e;
+        }
+
+        .pixel-card--upload {
+          background: repeating-linear-gradient(
+            135deg,
+            #f4c752 0 14px,
+            #ecb84a 14px 28px
+          );
+          border-style: dashed;
+        }
+
+        .pixel-card--upload:hover {
+          background: repeating-linear-gradient(
+            135deg,
+            #fff1cc 0 14px,
+            #f3d38b 14px 28px
+          );
+        }
+
+        /* UPLOAD */
+
+        .upload-panel {
+          max-width: 560px;
+
+          display: flex;
+          flex-direction: column;
+          gap: 22px;
+
+          padding: 32px;
+
+          background: linear-gradient(160deg, #fbe3a5 0%, #eec678 55%, #d9a94f 100%);
+
+          border: 5px solid #3d2410;
+          box-shadow: 7px 7px 0 #3d2410;
+        }
+
+        .upload-field {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+
+          color: #4a2710;
+
+          font-size: 11px;
+          font-weight: 900;
+
+          letter-spacing: 1px;
+        }
+
+        .upload-field input[type="text"] {
+          padding: 14px 16px;
+
+          border: 4px solid #3d2410;
+          background: #fff9e9;
+
+          color: #4a2710;
+
+          font-family: inherit;
+          font-size: 15px;
+          font-weight: 700;
+        }
+
+        .upload-field input[type="text"]:focus {
+          outline: none;
+          background: #fffdf5;
+        }
+
+        .upload-field--file input[type="file"] {
+          padding: 12px;
+
+          border: 4px dashed #3d2410;
+          background: #fff9e9;
+
+          color: #4a2710;
+
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 700;
+
+          cursor: pointer;
+        }
+
+        .upload-field--file em {
+          color: #7a5326;
+
+          font-style: normal;
+          font-size: 12px;
+        }
+
+        .upload-error {
+          margin: 0;
+          padding: 12px 16px;
+
+          background: #f0a92e33;
+          border: 3px solid #a4501e;
+
+          color: #7a2f0f;
+
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .upload-submit {
+          width: 100%;
         }
 
         /* MODES */
