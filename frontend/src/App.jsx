@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
-import FrontPage from "./pages/FrontPage";
+import FrontPage from "./pages/Frontpage";
 import NameEntry from "./components/NameEntry";
 import PlayScreen from "./components/PlayScreen";
 import { getFirstQuestion, submitAnswer } from "./api";
@@ -31,6 +31,11 @@ export default function App() {
 
   function handleLaunchSession(config) {
     setSession(config);
+  }
+
+  function handleExitToStart() {
+    dispatch({ type: "RESET_GAME" });
+    setSession(null);
   }
 
   async function startGame(name) {
@@ -104,9 +109,9 @@ export default function App() {
 
   // 2. Stage 3: Name Entry
   if (!gameState.started) {
-    return <><WorldMotion /><NameEntry onStart={startGame} loading={gameState.isLoading} /></>;
+    return <><WorldMotion /><NameEntry onStart={startGame} loading={gameState.isLoading} onExit={handleExitToStart} /></>;
   }
 
   // 3. Stage 4: Play Screen
-  return <><WorldMotion /><PlayScreen gameState={gameState} onAnswer={handleAnswer} /></>;
+  return <><WorldMotion /><PlayScreen gameState={gameState} onAnswer={handleAnswer} onExit={handleExitToStart} /></>;
 }

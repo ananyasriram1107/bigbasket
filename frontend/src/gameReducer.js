@@ -75,6 +75,9 @@ export function gameReducer(state, action) {
         error: action.payload.message,
       };
 
+    case "RESET_GAME":
+      return initialGameState;
+
     default:
       return state;
   }

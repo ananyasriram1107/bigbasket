@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function NameEntry({ onStart, loading }) {
+export default function NameEntry({ onStart, loading, onExit }) {
   const [name, setName] = useState("");
 
   function handleSubmit(event) {
@@ -17,6 +17,12 @@ export default function NameEntry({ onStart, loading }) {
 
   return (
     <main className="name-entry">
+      {onExit && (
+        <button type="button" className="exit-button" onClick={onExit}>
+          ◀ EXIT
+        </button>
+      )}
+
       <section className="name-entry__card">
         <p className="eyebrow">Adaptive Maths Game</p>
         <h1>Math Quest</h1>

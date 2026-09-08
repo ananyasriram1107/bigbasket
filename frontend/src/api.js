@@ -91,12 +91,45 @@ export function getQuestionsByCourseAndMode(courseId = "os", mode = "mcq") {
 
 export function checkAnswer(question, userAnswer) {
   if (question.mode === "short_answer") {
-    return evaluateShortAnswer(userAnswer, question);
+    return evaluateShortAnswer(userAnswer ?? "", question);
   }
   return {
     passed: String(userAnswer).trim().toLowerCase() === String(question.correctAnswer).trim().toLowerCase(),
     correctAnswer: question.correctAnswer,
   };
+}
+
+// Mirrors backend/engine.py's next_state: tier bumps after 2 correct in a
+// row, drops after 2 wrong in a row, so the local content bank plays by the
+// same adaptive-difficulty rule as the real backend.
+function nextAdaptiveState(tier, correctStreak, wrongStreak, correct) {
+  if (correct) {
+    correctStreak += 1;
+    wrongStreak = 0;
+    const xpEarned = tier * 10;
+
+    if (correctStreak >= 2) {
+      tier = Math.min(3, tier + 1);
+      correctStreak = 0;
+    }
+
+    return { tier, correctStreak, wrongStreak, xpEarned };
+  }
+
+  wrongStreak += 1;
+  correctStreak = 0;
+
+  if (wrongStreak >= 2) {
+    tier = Math.max(1, tier - 1);
+    wrongStreak = 0;
+  }
+
+  return { tier, correctStreak, wrongStreak, xpEarned: 0 };
+}
+
+// Mirrors backend/engine.py's level_from_xp.
+function levelFromXp(totalXp) {
+  return Math.floor(Math.sqrt(totalXp / 50)) + 1;
 }
 
 async function fetchWithRetry(url, options = {}) {
@@ -114,45 +147,67 @@ async function fetchWithRetry(url, options = {}) {
   }
 }
 
+// The real backend (backend/main.py) only knows a generic tier-based
+// arithmetic bank -- it has no notion of courseId/mode, so a course+mode
+// picked on the front page (OS/DBMS/DSA, MCQ/Short Answer) is served here,
+// from the local content bank, instead of hitting the network at all. The
+// backend call is kept as a last-resort fallback for course/mode combos
+// that don't exist locally.
 export async function getFirstQuestion(courseId = "os", mode = "mcq") {
+  const localMatches = getQuestionsByCourseAndMode(courseId, mode);
+  if (localMatches.length > 0) {
+    return localMatches[Math.floor(Math.random() * localMatches.length)];
+  }
+
   try {
     const response = await fetchWithRetry(
       `${API_BASE_URL}/question/first?courseId=${courseId}&mode=${mode}`
     );
     return await response.json();
   } catch (err) {
-    const matches = getQuestionsByCourseAndMode(courseId, mode);
-    return matches[0] || mockQuestions[0];
+    return mockQuestions[0];
   }
 }
 
 export async function submitAnswer(payload) {
-  try {
-    const response = await fetchWithRetry(`${API_BASE_URL}/answer`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    return await response.json();
-  } catch (err) {
-    const question = mockQuestions.find((q) => q.id === payload.question_id);
-    const evalRes = question ? checkAnswer(question, payload.answer) : { passed: false };
+  const question = mockQuestions.find((q) => q.id === payload.question_id);
+
+  if (question) {
+    const evalRes = checkAnswer(question, payload.answer);
     const isCorrect = evalRes.passed;
 
-    const coursePool = question
-      ? getQuestionsByCourseAndMode(question.courseId, question.mode)
-      : mockQuestions;
-    const nextQ = coursePool.find((q) => q.id !== payload.question_id) || coursePool[0];
+    const adaptive = nextAdaptiveState(
+      payload.tier,
+      payload.correct_streak,
+      payload.wrong_streak,
+      isCorrect
+    );
+    const newTotalXp = payload.total_xp + adaptive.xpEarned;
+
+    const coursePool = getQuestionsByCourseAndMode(question.courseId, question.mode);
+    const otherQuestions = coursePool.filter((q) => q.id !== payload.question_id);
+    const nextQ = otherQuestions.length > 0
+      ? otherQuestions[Math.floor(Math.random() * otherQuestions.length)]
+      : coursePool[0];
 
     return {
       correct: isCorrect,
-      xp_gained: isCorrect ? 25 : 0,
-      tier: isCorrect ? Math.min(payload.tier + 1, 3) : Math.max(payload.tier - 1, 1),
+      xp_earned: adaptive.xpEarned,
+      total_xp: newTotalXp,
+      tier: adaptive.tier,
+      correct_streak: adaptive.correctStreak,
+      wrong_streak: adaptive.wrongStreak,
+      level: levelFromXp(newTotalXp),
+      level_up: levelFromXp(newTotalXp) > levelFromXp(payload.total_xp),
       next_question: nextQ,
-      correct_streak: isCorrect ? payload.correct_streak + 1 : 0,
-      wrong_streak: isCorrect ? 0 : payload.wrong_streak + 1,
-      total_xp: payload.total_xp + (isCorrect ? 25 : 0),
       evaluation: evalRes,
     };
   }
+
+  const response = await fetchWithRetry(`${API_BASE_URL}/answer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return await response.json();
 }

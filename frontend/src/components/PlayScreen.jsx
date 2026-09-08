@@ -4,18 +4,22 @@ import StreakFlame from "../gamification/components/StreakFlame";
 import AnswerFlash from "../gamification/components/AnswerFlash";
 import BadgeToast from "../gamification/components/BadgeToast";
 import { useGamification } from "../gamification/useGamification";
+import { computeSessionStats } from "../utils/analytics";
 import { QUEST_LENGTH } from "../questConfig";
 import explorerSprite from "../assets/mascot-correct.png";
 
 const QUESTION_SECONDS = 15;
 
-export default function PlayScreen({ gameState, onAnswer }) {
+export default function PlayScreen({ gameState, onAnswer, onExit }) {
   const [secondsLeft, setSecondsLeft] = useState(QUESTION_SECONDS);
-  const [flashStatus, setFlashStatus] = useState(null);
+  const [flashPhase, setFlashPhase] = useState(null);
+  const [textAnswer, setTextAnswer] = useState("");
   const submittedRef = useRef(false);
 
   const question = gameState.currentQuestion;
-  const progress = Math.min(gameState.questionCount / QUEST_LENGTH, 1);
+  const correctCount = gameState.attempts.filter((attempt) => attempt.correct).length;
+  const progress = Math.min(correctCount / QUEST_LENGTH, 1);
+  const sessionStats = computeSessionStats(gameState.attempts);
 
   const {
     progressPercent,
@@ -26,8 +30,12 @@ export default function PlayScreen({ gameState, onAnswer }) {
 
   useEffect(() => {
     setSecondsLeft(QUESTION_SECONDS);
+    setTextAnswer("");
     submittedRef.current = false;
-  }, [question?.id]);
+    // Keyed on questionCount, not question.id: a thin content pool can
+    // legitimately serve the same question twice in a row, and the
+    // submit-lock/timer must still reset for that next round.
+  }, [gameState.questionCount]);
 
   useEffect(() => {
     if (!question || gameState.isLoading || gameState.gameComplete) {
@@ -35,37 +43,44 @@ export default function PlayScreen({ gameState, onAnswer }) {
     }
 
     const intervalId = setInterval(() => {
-      setSecondsLeft((currentSeconds) => {
-        if (currentSeconds <= 1) {
-          clearInterval(intervalId);
-
-          if (!submittedRef.current) {
-            submittedRef.current = true;
-            onAnswer(null, true);
-          }
-
-          return 0;
-        }
-
-        return currentSeconds - 1;
-      });
+      // Pure countdown only -- no side effects here. Calling onAnswer (which
+      // dispatches into App) from inside a setState updater runs it during
+      // React's render phase for PlayScreen and triggers "Cannot update a
+      // component while rendering a different component". The timeout
+      // submission is handled by the effect below instead, reacting to
+      // secondsLeft actually reaching 0.
+      setSecondsLeft((currentSeconds) => Math.max(0, currentSeconds - 1));
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [question?.id, gameState.isLoading, onAnswer]);
+  }, [gameState.questionCount, gameState.isLoading, gameState.gameComplete, question]);
+
+  useEffect(() => {
+    if (secondsLeft > 0 || gameState.isLoading || gameState.gameComplete || submittedRef.current) {
+      return;
+    }
+
+    submittedRef.current = true;
+    onAnswer(null, true);
+  }, [secondsLeft, gameState.isLoading, gameState.gameComplete, onAnswer]);
 
   useEffect(() => {
     if (!gameState.lastResult) {
       return undefined;
     }
 
-    setFlashStatus(gameState.lastResult.correct ? "correct" : "wrong");
+    const timers = [];
 
-    const timerId = setTimeout(() => {
-      setFlashStatus(null);
-    }, 3000);
+    if (gameState.lastResult.correct) {
+      setFlashPhase("win");
+      timers.push(setTimeout(() => setFlashPhase("xpboost"), 1400));
+      timers.push(setTimeout(() => setFlashPhase(null), 3000));
+    } else {
+      setFlashPhase("wrong");
+      timers.push(setTimeout(() => setFlashPhase(null), 2200));
+    }
 
-    return () => clearTimeout(timerId);
+    return () => timers.forEach(clearTimeout);
   }, [gameState.lastResult]);
 
   function chooseAnswer(answer) {
@@ -77,13 +92,34 @@ export default function PlayScreen({ gameState, onAnswer }) {
     onAnswer(answer, false);
   }
 
+  function submitTextAnswer(event) {
+    event.preventDefault();
+
+    if (gameState.isLoading || submittedRef.current || !textAnswer.trim()) {
+      return;
+    }
+
+    submittedRef.current = true;
+    onAnswer(textAnswer, false);
+  }
+
   if (gameState.isLoading && !question) {
-    return <main className="loading-screen">Loading your first question…</main>;
+    return (
+      <main className="loading-screen">
+        <button type="button" className="exit-button" onClick={onExit}>
+          ◀ EXIT
+        </button>
+        Loading your first question…
+      </main>
+    );
   }
 
   if (!question && !gameState.gameComplete) {
     return (
       <main className="loading-screen">
+        <button type="button" className="exit-button" onClick={onExit}>
+          ◀ EXIT
+        </button>
         No question is available. Please restart the game.
       </main>
     );
@@ -91,6 +127,10 @@ export default function PlayScreen({ gameState, onAnswer }) {
 
   return (
     <main className="play-screen">
+      <button type="button" className="exit-button" onClick={onExit}>
+        ◀ EXIT
+      </button>
+
       <header className="game-header">
         <div>
           <span className="eyebrow">Player</span>
@@ -119,7 +159,11 @@ export default function PlayScreen({ gameState, onAnswer }) {
         label={streakLabel}
       />
 
-      <AnswerFlash status={flashStatus} />
+      <AnswerFlash
+        phase={flashPhase}
+        score={gameState.totalXp}
+        feedback={gameState.lastResult?.evaluation?.feedback}
+      />
 
       <BadgeToast badge={activeBadge} onClose={dismissBadge} />
 
@@ -165,6 +209,29 @@ export default function PlayScreen({ gameState, onAnswer }) {
           <h1>Treasure unlocked!</h1>
           <strong>{gameState.totalXp} XP</strong>
           <span>You reached the treasure chest.</span>
+
+          <dl className="session-stats">
+            <div>
+              <dt>Accuracy</dt>
+              <dd>{sessionStats.accuracy}%</dd>
+            </div>
+            <div>
+              <dt>Longest Streak</dt>
+              <dd>{sessionStats.longestStreak}</dd>
+            </div>
+            <div>
+              <dt>Highest Tier</dt>
+              <dd>{sessionStats.highestTier}</dd>
+            </div>
+            <div>
+              <dt>Avg. Speed</dt>
+              <dd>{sessionStats.avgSpeedSeconds}s</dd>
+            </div>
+          </dl>
+
+          <button type="button" className="quest-complete__exit" onClick={onExit}>
+            ◀ BACK TO START
+          </button>
         </section>
       ) : <section className="question-card">
         <p className="question-number">
@@ -173,18 +240,38 @@ export default function PlayScreen({ gameState, onAnswer }) {
 
         <h1>{question.prompt}</h1>
 
-        <div className="answer-options">
-          {question.options.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => chooseAnswer(option)}
+        {question.mode === "short_answer" ? (
+          <form className="short-answer-form" onSubmit={submitTextAnswer}>
+            <textarea
+              className="short-answer-input"
+              value={textAnswer}
+              onChange={(event) => setTextAnswer(event.target.value)}
+              placeholder="Type your answer…"
               disabled={gameState.isLoading}
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="short-answer-submit"
+              disabled={gameState.isLoading || !textAnswer.trim()}
             >
-              {option}
+              Submit Answer
             </button>
-          ))}
-        </div>
+          </form>
+        ) : (
+          <div className="answer-options">
+            {question.options.map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => chooseAnswer(option)}
+                disabled={gameState.isLoading}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )}
       </section>}
     </main>
   );

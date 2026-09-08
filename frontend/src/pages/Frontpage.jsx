@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import explorerSprite from "../assets/mascot-correct.png";
+import questBg from "../assets/pixel-quest-result-bg.png";
 
 const COURSES = [
   {
@@ -61,97 +62,48 @@ export default function FrontPage({ onLaunchSession }) {
 
   return (
     <div className="pixel-quest-page">
-      <div className="pixel-stars">
-        <i />
-        <i />
-        <i />
-        <i />
-        <i />
-        <i />
-      </div>
-
-      <header className="pixel-header">
-        <div className="pixel-logo">
-          <div className="pixel-logo-box">Q</div>
-          <span>QUESTVERSE</span>
-        </div>
-
-        <div className="pixel-coins">
-          <span>◆</span>
-          READY
-        </div>
-      </header>
-
       <main className="pixel-content">
+
+        <div className="pixel-logo pixel-logo--center">
+          <div className="pixel-logo-box">Q</div>
+          <span className="pixel-gold-text pixel-gold-text--sm">QUESTVERSE</span>
+        </div>
 
         {/* START SCREEN */}
         {stage === "start" && (
           <section className="start-screen">
 
-            <div className="start-text">
-              <div className="pixel-small-title">
-                ★ WELCOME ADVENTURER ★
-              </div>
+            <div className="pixel-small-title">
+              ★ WELCOME ADVENTURER ★
+            </div>
 
-              <h1>
+            <div className="title-brick-panel">
+              <h1 className="pixel-gold-text">
                 QUEST
                 <br />
-                <span>VERSE</span>
+                VERSE
               </h1>
 
               <p>
                 Your learning adventure begins here.
                 <br />
-                Choose your path, answer challenges,
-                <br />
-                and level up your knowledge.
+                Choose your path, answer challenges, and level up your knowledge.
               </p>
-
-              <button
-                className="pixel-start"
-                onClick={() => setStage("courses")}
-              >
-                START QUEST
-                <span>▶</span>
-              </button>
             </div>
 
-            <div className="pixel-world">
+            <button
+              className="pixel-start"
+              onClick={() => setStage("courses")}
+            >
+              START QUEST
+              <span>▶</span>
+            </button>
 
-              <div className="moon" />
-
-              <div className="mountain mountain-back" />
-              <div className="mountain mountain-front" />
-
-              <div className="quest-road">
-                <div className="road-node node-1">1</div>
-                <div className="road-node node-2">2</div>
-                <div className="road-node node-3">3</div>
-              </div>
-
-              <img
-                src={explorerSprite}
-                alt="Explorer"
-                className="pixel-explorer"
-              />
-
-              <div className="treasure">
-                <div className="treasure-top" />
-                <div className="treasure-body">
-                  <span>◆</span>
-                </div>
-              </div>
-
-              <div className="grass">
-                <span>✦</span>
-                <span>✿</span>
-                <span>✦</span>
-                <span>❀</span>
-                <span>✦</span>
-                <span>✿</span>
-                <span>✦</span>
-              </div>
-            </div>
+            <img
+              src={explorerSprite}
+              alt="Explorer"
+              className="pixel-hero-explorer"
+            />
 
           </section>
         )}
@@ -166,7 +118,7 @@ export default function FrontPage({ onLaunchSession }) {
                   QUEST 01
                 </div>
 
-                <h2>CHOOSE YOUR PATH</h2>
+                <h2 className="pixel-gold-text pixel-gold-text--md">CHOOSE YOUR PATH</h2>
 
                 <p>
                   Select a subject for your adventure.
@@ -223,7 +175,7 @@ export default function FrontPage({ onLaunchSession }) {
                   QUEST 02
                 </div>
 
-                <h2>CHOOSE YOUR CHALLENGE</h2>
+                <h2 className="pixel-gold-text pixel-gold-text--md">CHOOSE YOUR CHALLENGE</h2>
 
                 <p>
                   <strong>{selectedCourse?.short}</strong>{" "}
@@ -285,19 +237,14 @@ export default function FrontPage({ onLaunchSession }) {
         .pixel-quest-page {
           min-height: 100vh;
           width: 100%;
-          overflow: hidden;
           position: relative;
+          display: flex;
+          flex-direction: column;
 
-          background:
-            linear-gradient(
-              180deg,
-              #87c9ef 0%,
-              #a9daf5 42%,
-              #c7e7d0 42%,
-              #c7e7d0 100%
-            );
+          background: url(${questBg}) center / cover no-repeat;
+          image-rendering: pixelated;
 
-          color: #26384f;
+          color: #2c1a0a;
 
           font-family:
             "Trebuchet MS",
@@ -305,141 +252,79 @@ export default function FrontPage({ onLaunchSession }) {
             sans-serif;
         }
 
-        /* PIXEL OVERLAY */
-
-        .pixel-quest-page::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-
-          background-image:
-            linear-gradient(
-              rgba(255,255,255,0.12) 2px,
-              transparent 2px
-            ),
-            linear-gradient(
-              90deg,
-              rgba(255,255,255,0.12) 2px,
-              transparent 2px
-            );
-
-          background-size: 32px 32px;
-          pointer-events: none;
+        .pixel-gold-text {
+          font-family: "Press Start 2P", "Arial Black", sans-serif;
+          background: linear-gradient(180deg, #fff3b0 0%, #ffcf4d 45%, #f2921f 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          text-shadow:
+            -3px -3px 0 #6b3a12, 3px -3px 0 #6b3a12, -3px 3px 0 #6b3a12, 3px 3px 0 #6b3a12,
+            -3px 0 0 #6b3a12, 3px 0 0 #6b3a12, 0 -3px 0 #6b3a12, 0 3px 0 #6b3a12,
+            0 6px 0 #8a4b1f, 0 10px 0 #4a270f;
         }
 
-        .pixel-stars {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          z-index: 1;
+        .pixel-gold-text--sm {
+          text-shadow:
+            -1px -1px 0 #6b3a12, 1px -1px 0 #6b3a12, -1px 1px 0 #6b3a12, 1px 1px 0 #6b3a12,
+            0 3px 0 #8a4b1f;
         }
 
-        .pixel-stars i {
-          position: absolute;
-          width: 7px;
-          height: 7px;
-          background: #fff5b5;
-          box-shadow: 3px 3px 0 rgba(64,83,109,0.2);
+        .pixel-gold-text--md {
+          text-shadow:
+            -2px -2px 0 #6b3a12, 2px -2px 0 #6b3a12, -2px 2px 0 #6b3a12, 2px 2px 0 #6b3a12,
+            -2px 0 0 #6b3a12, 2px 0 0 #6b3a12, 0 -2px 0 #6b3a12, 0 2px 0 #6b3a12,
+            0 5px 0 #8a4b1f;
         }
 
-        .pixel-stars i:nth-child(1) {
-          top: 15%;
-          left: 13%;
-        }
-
-        .pixel-stars i:nth-child(2) {
-          top: 27%;
-          left: 38%;
-        }
-
-        .pixel-stars i:nth-child(3) {
-          top: 18%;
-          right: 28%;
-        }
-
-        .pixel-stars i:nth-child(4) {
-          top: 36%;
-          right: 12%;
-        }
-
-        .pixel-stars i:nth-child(5) {
-          top: 55%;
-          left: 8%;
-        }
-
-        .pixel-stars i:nth-child(6) {
-          top: 48%;
-          right: 42%;
-        }
-
-        /* HEADER */
-
-        .pixel-header {
-          height: 82px;
-          padding: 0 6vw;
-
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-
-          background: rgba(255,255,255,0.35);
-
-          border-bottom: 4px solid #40536d;
-
-          position: relative;
-          z-index: 5;
-        }
+        /* LOGO */
 
         .pixel-logo {
           display: flex;
           align-items: center;
           gap: 14px;
+        }
 
-          font-size: 20px;
-          font-weight: 900;
-          letter-spacing: 3px;
+        .pixel-logo span {
+          font-size: 14px;
+          letter-spacing: 2px;
+        }
+
+        .pixel-logo--center {
+          justify-content: center;
         }
 
         .pixel-logo-box {
-          width: 44px;
-          height: 44px;
+          width: 42px;
+          height: 42px;
 
           display: grid;
           place-items: center;
 
-          background: #75afe5;
-          color: white;
+          background: linear-gradient(180deg, #ffe8a3 0%, #f0a92e 60%, #c9791a 100%);
+          color: #5c2f12;
 
-          border: 4px solid #40536d;
-          box-shadow: 5px 5px 0 #40536d;
+          border: 4px solid #3d2410;
+          box-shadow: 4px 4px 0 #3d2410;
 
-          font-size: 22px;
-        }
-
-        .pixel-coins {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 1px;
-        }
-
-        .pixel-coins span {
-          color: #e6b84e;
-          font-size: 17px;
+          font-family: "Press Start 2P", "Arial Black", sans-serif;
+          font-size: 18px;
         }
 
         /* MAIN */
 
         .pixel-content {
+          flex: 1;
           width: min(1150px, 88%);
-          min-height: calc(100vh - 142px);
           margin: auto;
 
           display: flex;
+          flex-direction: column;
           align-items: center;
+          justify-content: center;
+          gap: 30px;
+
+          padding: 40px 0;
 
           position: relative;
           z-index: 2;
@@ -449,82 +334,83 @@ export default function FrontPage({ onLaunchSession }) {
 
         .start-screen {
           width: 100%;
+          max-width: 720px;
 
-          display: grid;
-          grid-template-columns: 0.9fr 1.1fr;
-
-          gap: 55px;
+          display: flex;
+          flex-direction: column;
           align-items: center;
-        }
+          text-align: center;
 
-        .start-text {
-          padding: 40px 0;
+          position: relative;
         }
 
         .pixel-small-title {
-          color: #527eaa;
+          color: #fff3c9;
 
-          font-size: 12px;
-          font-weight: 900;
+          font-family: "Press Start 2P", "Arial Black", sans-serif;
+          font-size: 11px;
 
           letter-spacing: 2px;
 
-          margin-bottom: 20px;
+          margin-bottom: 22px;
+
+          text-shadow: 2px 2px 0 #3d2410;
         }
 
-        .start-text h1 {
+        .title-brick-panel {
+          margin: 0 0 34px;
+          padding: 40px 56px;
+
+          background-color: #f4c752;
+          background-image:
+            repeating-linear-gradient(90deg, #d89a2e 0 6px, transparent 6px 54px),
+            repeating-linear-gradient(0deg, #d89a2e 0 6px, transparent 6px 54px);
+
+          border: 6px solid #3d2410;
+          box-shadow: 10px 10px 0 #3d2410;
+        }
+
+        .start-screen h1 {
+          margin: 0 0 26px;
+
+          font-family: "Press Start 2P", "Arial Black", sans-serif;
+
+          font-size: clamp(34px, 8vw, 62px);
+
+          line-height: 1.35;
+          letter-spacing: 1px;
+        }
+
+        .start-screen p {
           margin: 0;
 
-          font-family:
-            "Arial Black",
-            "Trebuchet MS",
-            sans-serif;
+          max-width: 46ch;
 
-          font-size: clamp(70px, 9vw, 125px);
-
-          line-height: 0.78;
-
-          letter-spacing: -6px;
-
-          color: #34465e;
-
-          text-shadow:
-            5px 5px 0 rgba(64,83,109,0.18);
-        }
-
-        .start-text h1 span {
-          color: #5799d6;
-        }
-
-        .start-text p {
-          margin: 32px 0;
-
-          color: #60748a;
+          color: #4a2710;
 
           font-size: 16px;
+          font-weight: 700;
           line-height: 1.7;
         }
 
         .pixel-start {
           min-width: 260px;
 
-          padding: 18px 22px;
+          padding: 18px 26px;
 
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 16px;
 
-          background: #70a9df;
-          color: white;
+          background: linear-gradient(180deg, #ffe8a3 0%, #f0a92e 55%, #c9791a 100%);
+          color: #4a2710;
 
-          border: 4px solid #40536d;
-          box-shadow: 6px 6px 0 #40536d;
+          border: 4px solid #3d2410;
+          box-shadow: 6px 6px 0 #3d2410;
 
-          font-family: inherit;
+          font-family: "Press Start 2P", "Arial Black", sans-serif;
           font-size: 13px;
-          font-weight: 900;
-
-          letter-spacing: 2px;
 
           cursor: pointer;
 
@@ -533,162 +419,25 @@ export default function FrontPage({ onLaunchSession }) {
 
         .pixel-start:hover {
           transform: translate(3px, 3px);
-          box-shadow: 3px 3px 0 #40536d;
-          background: #609bd4;
+          box-shadow: 3px 3px 0 #3d2410;
         }
 
         .pixel-start span {
           font-size: 16px;
         }
 
-        /* WORLD */
-
-        .pixel-world {
-          height: 490px;
-
+        .pixel-hero-explorer {
           position: relative;
-
-          border: 5px solid #40536d;
-
-          background:
-            linear-gradient(
-              180deg,
-              #91cef0 0%,
-              #bce3f6 63%,
-              #9bcf73 63%,
-              #9bcf73 100%
-            );
-
-          box-shadow: 9px 9px 0 #40536d;
-
-          overflow: hidden;
-        }
-
-        .moon {
-          position: absolute;
-
-          width: 75px;
-          height: 75px;
-
-          top: 40px;
-          right: 60px;
-
-          background: #ffe59a;
-
-          border: 5px solid #40536d;
-
-          box-shadow:
-            6px 6px 0 #40536d;
-        }
-
-        .mountain {
-          position: absolute;
-
-          bottom: 175px;
-
-          width: 0;
-          height: 0;
-
-          border-left: 170px solid transparent;
-          border-right: 170px solid transparent;
-          border-bottom: 210px solid #75a9b7;
-        }
-
-        .mountain-back {
-          left: -70px;
-          opacity: 0.65;
-        }
-
-        .mountain-front {
-          right: -40px;
-          border-bottom-color: #6699a9;
-        }
-
-        /* PATH */
-
-        .quest-road {
-          position: absolute;
-
-          left: 7%;
-          right: 7%;
-          bottom: 135px;
-
-          height: 145px;
-        }
-
-        .quest-road::before {
-          content: "";
-
-          position: absolute;
-
-          left: 5%;
-          right: 5%;
-          top: 60px;
-
-          height: 18px;
-
-          background: #d5b37a;
-
-          border-top: 4px solid #806a4d;
-          border-bottom: 4px solid #806a4d;
-
-          transform: rotate(-8deg);
-        }
-
-        .road-node {
-          position: absolute;
-          z-index: 3;
-
-          width: 50px;
-          height: 50px;
-
-          display: grid;
-          place-items: center;
-
-          background: #fff1c7;
-
-          border: 4px solid #40536d;
-
-          box-shadow: 5px 5px 0 #40536d;
-
-          font-size: 15px;
-          font-weight: 900;
-        }
-
-        .node-1 {
-          left: 3%;
-          top: 70px;
-        }
-
-        .node-2 {
-          left: 46%;
-          top: 42px;
-        }
-
-        .node-3 {
-          right: 3%;
-          top: 8px;
-        }
-
-        /* CHARACTER */
-
-        .pixel-explorer {
-          position: absolute;
-
-          width: 120px;
-          height: 120px;
+          width: 96px;
+          height: 96px;
 
           object-fit: contain;
 
           image-rendering: pixelated;
 
-          left: 39%;
-          bottom: 145px;
+          margin-top: 34px;
 
-          z-index: 5;
-
-          filter:
-            drop-shadow(6px 6px 0 rgba(64,83,109,0.3));
+          filter: drop-shadow(5px 6px 0 rgba(30, 20, 10, 0.4));
 
           animation: bounce 2s ease-in-out infinite;
         }
@@ -703,85 +452,10 @@ export default function FrontPage({ onLaunchSession }) {
           }
         }
 
-        /* CHEST */
-
-        .treasure {
-          position: absolute;
-
-          right: 9%;
-          bottom: 115px;
-
-          width: 72px;
-          height: 62px;
-
-          z-index: 4;
-        }
-
-        .treasure-top {
-          width: 72px;
-          height: 25px;
-
-          background: #d69a52;
-
-          border: 5px solid #40536d;
-
-          position: absolute;
-          top: 0;
-        }
-
-        .treasure-body {
-          position: absolute;
-
-          width: 72px;
-          height: 42px;
-
-          bottom: 0;
-
-          background: #c98643;
-
-          border: 5px solid #40536d;
-        }
-
-        .treasure-body span {
-          position: absolute;
-
-          left: 25px;
-          top: 9px;
-
-          color: #ffe08a;
-
-          font-size: 14px;
-        }
-
-        /* GRASS */
-
-        .grass {
-          position: absolute;
-
-          bottom: 0;
-          left: 0;
-          right: 0;
-
-          height: 92px;
-
-          background: #8ec66d;
-
-          border-top: 5px solid #40536d;
-
-          display: flex;
-          align-items: center;
-          justify-content: space-around;
-
-          color: #568b52;
-
-          font-size: 24px;
-        }
-
         /* SELECTION */
 
         .selection-screen {
           width: 100%;
-          padding: 45px 0;
         }
 
         .selection-heading {
@@ -793,50 +467,49 @@ export default function FrontPage({ onLaunchSession }) {
         }
 
         .selection-heading h2 {
-          margin: 0;
+          margin: 18px 0 0;
 
-          font-size: clamp(38px, 5vw, 65px);
+          font-family: "Press Start 2P", "Arial Black", sans-serif;
+          font-size: clamp(20px, 3.6vw, 32px);
 
-          line-height: 0.9;
-
-          letter-spacing: -3px;
-
-          color: #34465e;
+          line-height: 1.6;
         }
 
         .selection-heading p {
-          margin: 12px 0 0;
+          margin: 22px 0 0;
 
-          color: #667a90;
+          color: #fff6e2;
 
           font-size: 15px;
+          font-weight: 700;
+
+          text-shadow: 2px 2px 0 rgba(61, 36, 16, 0.85);
         }
 
         .selection-heading p strong {
-          color: #5799d6;
+          color: #ffe8a3;
         }
 
         .pixel-back {
           padding: 13px 18px;
 
-          background: #fff4d5;
+          background: linear-gradient(180deg, #ffe8a3 0%, #f0a92e 100%);
 
-          border: 4px solid #40536d;
-          box-shadow: 4px 4px 0 #40536d;
+          border: 4px solid #3d2410;
+          box-shadow: 4px 4px 0 #3d2410;
 
-          color: #40536d;
+          color: #4a2710;
 
-          font-family: inherit;
+          font-family: "Press Start 2P", "Arial Black", sans-serif;
 
           font-size: 10px;
-          font-weight: 900;
 
           cursor: pointer;
         }
 
         .pixel-back:hover {
           transform: translate(2px, 2px);
-          box-shadow: 2px 2px 0 #40536d;
+          box-shadow: 2px 2px 0 #3d2410;
         }
 
         /* COURSE CARDS */
@@ -849,8 +522,9 @@ export default function FrontPage({ onLaunchSession }) {
           gap: 18px;
         }
 
-        .pixel-card {
-          min-height: 350px;
+        .pixel-card,
+        .pixel-mode-card {
+          min-height: 340px;
 
           padding: 24px;
 
@@ -860,13 +534,13 @@ export default function FrontPage({ onLaunchSession }) {
 
           text-align: left;
 
-          background: #fff4d8;
+          background: linear-gradient(160deg, #fbe3a5 0%, #eec678 55%, #d9a94f 100%);
 
-          border: 5px solid #40536d;
+          border: 5px solid #3d2410;
 
-          box-shadow: 7px 7px 0 #40536d;
+          box-shadow: 7px 7px 0 #3d2410;
 
-          color: #34465e;
+          color: #4a2710;
 
           font-family: inherit;
 
@@ -875,16 +549,17 @@ export default function FrontPage({ onLaunchSession }) {
           transition: 0.15s;
         }
 
-        .pixel-card:hover {
+        .pixel-card:hover,
+        .pixel-mode-card:hover {
           transform: translate(3px, 3px);
 
-          box-shadow: 4px 4px 0 #40536d;
+          box-shadow: 4px 4px 0 #3d2410;
 
-          background: #fff9e9;
+          background: linear-gradient(160deg, #fff1cc 0%, #f3d38b 55%, #e2b662 100%);
         }
 
         .card-number {
-          color: #8190a1;
+          color: #7a5326;
 
           font-size: 10px;
           font-weight: 900;
@@ -893,16 +568,15 @@ export default function FrontPage({ onLaunchSession }) {
         }
 
         .card-icon {
-          font-size: 58px;
+          font-size: 54px;
 
-          color: #5799d6;
+          color: #a4501e;
 
-          text-shadow:
-            4px 4px 0 rgba(64,83,109,0.15);
+          text-shadow: 3px 3px 0 rgba(61, 36, 16, 0.25);
         }
 
         .card-info span {
-          color: #5799d6;
+          color: #a4501e;
 
           font-size: 11px;
           font-weight: 900;
@@ -913,7 +587,7 @@ export default function FrontPage({ onLaunchSession }) {
         .card-info h3 {
           margin: 8px 0;
 
-          font-size: 23px;
+          font-size: 22px;
 
           line-height: 1.1;
         }
@@ -921,22 +595,23 @@ export default function FrontPage({ onLaunchSession }) {
         .card-info p {
           margin: 0;
 
-          color: #718196;
+          color: #5c3d1c;
 
           font-size: 13px;
 
           line-height: 1.5;
         }
 
-        .card-action {
+        .card-action,
+        .mode-action {
           padding-top: 18px;
 
-          border-top: 3px dashed #c8d0d8;
+          border-top: 3px dashed #a4501e;
 
           display: flex;
           justify-content: space-between;
 
-          color: #60748a;
+          color: #5c3d1c;
 
           font-size: 10px;
           font-weight: 900;
@@ -944,8 +619,9 @@ export default function FrontPage({ onLaunchSession }) {
           letter-spacing: 1px;
         }
 
-        .card-action b {
-          color: #5799d6;
+        .card-action b,
+        .mode-action b {
+          color: #a4501e;
         }
 
         /* MODES */
@@ -959,53 +635,29 @@ export default function FrontPage({ onLaunchSession }) {
         }
 
         .pixel-mode-card {
-          min-height: 320px;
+          min-height: 300px;
 
           padding: 30px;
 
           position: relative;
-
-          text-align: left;
-
-          background: #fff4d8;
-
-          border: 5px solid #40536d;
-
-          box-shadow: 7px 7px 0 #40536d;
-
-          color: #34465e;
-
-          font-family: inherit;
-
-          cursor: pointer;
-
-          transition: 0.15s;
-        }
-
-        .pixel-mode-card:hover {
-          transform: translate(3px, 3px);
-
-          box-shadow: 4px 4px 0 #40536d;
-
-          background: #fff9e9;
         }
 
         .mode-icon {
-          width: 65px;
-          height: 65px;
+          width: 62px;
+          height: 62px;
 
           display: grid;
           place-items: center;
 
-          background: #bce0f5;
+          background: linear-gradient(180deg, #ffe8a3 0%, #c9791a 100%);
 
-          border: 4px solid #40536d;
+          border: 4px solid #3d2410;
 
-          box-shadow: 4px 4px 0 #40536d;
+          box-shadow: 4px 4px 0 #3d2410;
 
-          color: #5799d6;
+          color: #4a2710;
 
-          font-size: 30px;
+          font-size: 28px;
         }
 
         .mode-tag {
@@ -1016,57 +668,37 @@ export default function FrontPage({ onLaunchSession }) {
 
           padding: 7px 10px;
 
-          background: #ffe19a;
+          background: #f0a92e;
 
-          border: 3px solid #40536d;
+          border: 3px solid #3d2410;
 
           font-size: 9px;
 
           font-weight: 900;
 
-          color: #6d5b32;
+          color: #3d2410;
         }
 
         .pixel-mode-card h3 {
           margin: 42px 0 12px;
 
-          font-size: 30px;
+          font-size: 26px;
         }
 
         .pixel-mode-card p {
           margin: 0 0 30px;
 
-          color: #718196;
+          color: #5c3d1c;
 
           font-size: 14px;
 
           line-height: 1.6;
         }
 
-        .mode-action {
-          padding-top: 18px;
-
-          border-top: 3px dashed #c8d0d8;
-
-          display: flex;
-          justify-content: space-between;
-
-          color: #60748a;
-
-          font-size: 10px;
-          font-weight: 900;
-
-          letter-spacing: 1px;
-        }
-
-        .mode-action b {
-          color: #5799d6;
-        }
-
         /* FOOTER */
 
         .pixel-footer {
-          height: 60px;
+          height: 56px;
 
           padding: 0 6vw;
 
@@ -1074,14 +706,14 @@ export default function FrontPage({ onLaunchSession }) {
           justify-content: space-between;
           align-items: center;
 
-          background: rgba(255,255,255,0.35);
+          background: rgba(43, 26, 10, 0.45);
 
-          border-top: 4px solid #40536d;
+          border-top: 4px solid #2c1a0a;
 
           position: relative;
           z-index: 5;
 
-          color: #718196;
+          color: #fff3c9;
 
           font-size: 9px;
           font-weight: 900;
@@ -1093,14 +725,6 @@ export default function FrontPage({ onLaunchSession }) {
 
         @media (max-width: 900px) {
 
-          .start-screen {
-            grid-template-columns: 1fr;
-          }
-
-          .pixel-world {
-            height: 380px;
-          }
-
           .course-grid,
           .mode-grid {
             grid-template-columns: 1fr;
@@ -1110,30 +734,17 @@ export default function FrontPage({ onLaunchSession }) {
 
         @media (max-width: 550px) {
 
-          .pixel-header {
-            padding: 0 20px;
-          }
-
-          .pixel-coins {
-            display: none;
-          }
-
           .pixel-content {
             width: 90%;
           }
 
-          .start-text h1 {
-            font-size: 65px;
-            letter-spacing: -4px;
+          .title-brick-panel {
+            padding: 28px 26px;
           }
 
           .selection-heading {
             flex-direction: column;
             gap: 20px;
-          }
-
-          .selection-heading h2 {
-            font-size: 40px;
           }
 
           .pixel-footer {
