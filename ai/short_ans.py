@@ -49,6 +49,7 @@ def make_question(language: str, field: str, qid: str | None = None) -> dict:
 
     return {
         "id": qid or f"lang-sa-{language.lower()}-{field}",
+        "courseId": "lang",
         "mode": "short_answer",
         "language": row["language"],
         "field": field,

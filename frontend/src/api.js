@@ -147,32 +147,41 @@ async function fetchWithRetry(url, options = {}) {
   }
 }
 
-// The real backend (backend/main.py) only knows a generic tier-based
-// arithmetic bank -- it has no notion of courseId/mode, so a course+mode
-// picked on the front page (OS/DBMS/DSA, MCQ/Short Answer) is served here,
-// from the local content bank, instead of hitting the network at all. The
-// backend call is kept as a last-resort fallback for course/mode combos
-// that don't exist locally.
+// backend/main.py now serves real, course/mode-aware content for every
+// course on the front page (see backend/course_content.py +
+// ai/question_bank.py) with server-side keyword/LLM grading for short
+// answers, so it's the primary source. The local mockQuestions bank below
+// is kept only as an offline fallback -- fewer questions, deterministic
+// keyword grading, no natural-language feedback -- for whenever the
+// backend isn't reachable.
 export async function getFirstQuestion(courseId = "os", mode = "mcq") {
-  const localMatches = getQuestionsByCourseAndMode(courseId, mode);
-  if (localMatches.length > 0) {
-    return localMatches[Math.floor(Math.random() * localMatches.length)];
-  }
-
   try {
     const response = await fetchWithRetry(
       `${API_BASE_URL}/question/first?courseId=${courseId}&mode=${mode}`
     );
     return await response.json();
   } catch (err) {
-    return mockQuestions[0];
+    const localMatches = getQuestionsByCourseAndMode(courseId, mode);
+    return localMatches[Math.floor(Math.random() * localMatches.length)] || mockQuestions[0];
   }
 }
 
 export async function submitAnswer(payload) {
-  const question = mockQuestions.find((q) => q.id === payload.question_id);
+  try {
+    const response = await fetchWithRetry(`${API_BASE_URL}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await response.json();
+  } catch (err) {
+    const question = mockQuestions.find((q) => q.id === payload.question_id);
+    if (!question) {
+      // Question came from the real backend and has no local counterpart --
+      // there's nothing to grade offline, so surface the connection error.
+      throw err;
+    }
 
-  if (question) {
     const evalRes = checkAnswer(question, payload.answer);
     const isCorrect = evalRes.passed;
 
@@ -203,11 +212,4 @@ export async function submitAnswer(payload) {
       evaluation: evalRes,
     };
   }
-
-  const response = await fetchWithRetry(`${API_BASE_URL}/answer`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return await response.json();
 }

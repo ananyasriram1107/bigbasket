@@ -1,30 +1,7 @@
 import React, { useState } from "react";
 import explorerSprite from "../assets/mascot-correct.png";
 import questBg from "../assets/pixel-quest-result-bg.png";
-
-const COURSES = [
-  {
-    id: "os",
-    title: "Operating Systems",
-    short: "OS",
-    description: "Processes, memory, scheduling & concurrency",
-    icon: "⚙",
-  },
-  {
-    id: "dbms",
-    title: "Database Systems",
-    short: "DB",
-    description: "SQL, transactions, indexing & normalization",
-    icon: "▣",
-  },
-  {
-    id: "dsa",
-    title: "Data Structures & Algorithms",
-    short: "DS",
-    description: "Trees, graphs, algorithms & complexity",
-    icon: "⌘",
-  },
-];
+import { COURSES } from "../courses";
 
 const MODES = [
   {
@@ -517,7 +494,7 @@ export default function FrontPage({ onLaunchSession }) {
         .course-grid {
           display: grid;
 
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, 1fr);
 
           gap: 18px;
         }
@@ -722,6 +699,14 @@ export default function FrontPage({ onLaunchSession }) {
         }
 
         /* RESPONSIVE */
+
+        @media (max-width: 1050px) {
+
+          .course-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+        }
 
         @media (max-width: 900px) {
 

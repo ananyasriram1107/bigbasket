@@ -37,8 +37,10 @@ export default function PlayScreen({ gameState, onAnswer, onExit }) {
     // submit-lock/timer must still reset for that next round.
   }, [gameState.questionCount]);
 
+  const isUntimed = question?.mode === "short_answer";
+
   useEffect(() => {
-    if (!question || gameState.isLoading || gameState.gameComplete) {
+    if (!question || gameState.isLoading || gameState.gameComplete || isUntimed) {
       return undefined;
     }
 
@@ -53,16 +55,16 @@ export default function PlayScreen({ gameState, onAnswer, onExit }) {
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [gameState.questionCount, gameState.isLoading, gameState.gameComplete, question]);
+  }, [gameState.questionCount, gameState.isLoading, gameState.gameComplete, question, isUntimed]);
 
   useEffect(() => {
-    if (secondsLeft > 0 || gameState.isLoading || gameState.gameComplete || submittedRef.current) {
+    if (secondsLeft > 0 || gameState.isLoading || gameState.gameComplete || submittedRef.current || isUntimed) {
       return;
     }
 
     submittedRef.current = true;
     onAnswer(null, true);
-  }, [secondsLeft, gameState.isLoading, gameState.gameComplete, onAnswer]);
+  }, [secondsLeft, gameState.isLoading, gameState.gameComplete, onAnswer, isUntimed]);
 
   useEffect(() => {
     if (!gameState.lastResult) {
@@ -148,9 +150,9 @@ export default function PlayScreen({ gameState, onAnswer, onExit }) {
           progressPercent={progressPercent}
         />
 
-        <div className={secondsLeft <= 5 ? "timer timer--urgent" : "timer"}>
+        <div className={!isUntimed && secondsLeft <= 5 ? "timer timer--urgent" : "timer"}>
           <span className="eyebrow">Time</span>
-          <strong>{secondsLeft}s</strong>
+          <strong>{isUntimed ? "No limit" : `${secondsLeft}s`}</strong>
         </div>
       </header>
 
@@ -162,7 +164,7 @@ export default function PlayScreen({ gameState, onAnswer, onExit }) {
       <AnswerFlash
         phase={flashPhase}
         score={gameState.totalXp}
-        feedback={gameState.lastResult?.evaluation?.feedback}
+        feedback={gameState.lastResult?.evaluation?.feedback ?? gameState.lastResult?.evaluation?.explanation}
       />
 
       <BadgeToast badge={activeBadge} onClose={dismissBadge} />
@@ -260,7 +262,7 @@ export default function PlayScreen({ gameState, onAnswer, onExit }) {
           </form>
         ) : (
           <div className="answer-options">
-            {question.options.map((option) => (
+            {(question.options || []).map((option) => (
               <button
                 key={option}
                 type="button"

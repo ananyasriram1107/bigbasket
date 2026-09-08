@@ -2,9 +2,13 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import FrontPage from "./pages/Frontpage";
 import NameEntry from "./components/NameEntry";
 import PlayScreen from "./components/PlayScreen";
+import ClickSound from "./components/ClickSound";
+import FullscreenToggle from "./components/FullscreenToggle";
 import { getFirstQuestion, submitAnswer } from "./api";
 import { gameReducer, initialGameState } from "./gameReducer";
 import { QUEST_LENGTH } from "./questConfig";
+import { computeSessionStats } from "./utils/analytics";
+import { recordCourseSession } from "./utils/progressStore";
 import "./App.css";
 
 function WorldMotion() {
@@ -22,6 +26,7 @@ export default function App() {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
   const questionStartedAtRef = useRef(Date.now());
   const [session, setSession] = useState(null);
+  const progressRecordedRef = useRef(false);
 
   useEffect(() => {
     if (gameState.currentQuestion?.id) {
@@ -29,11 +34,19 @@ export default function App() {
     }
   }, [gameState.currentQuestion?.id]);
 
+  useEffect(() => {
+    if (gameState.gameComplete && !progressRecordedRef.current && gameState.courseId) {
+      progressRecordedRef.current = true;
+      recordCourseSession(gameState.courseId, computeSessionStats(gameState.attempts));
+    }
+  }, [gameState.gameComplete, gameState.courseId, gameState.attempts]);
+
   function handleLaunchSession(config) {
     setSession(config);
   }
 
   function handleExitToStart() {
+    progressRecordedRef.current = false;
     dispatch({ type: "RESET_GAME" });
     setSession(null);
   }
@@ -44,6 +57,7 @@ export default function App() {
       payload: {
         name,
         courseId: session?.courseId,
+        courseTitle: session?.courseTitle,
         mode: session?.mode,
       },
     });
@@ -103,15 +117,37 @@ export default function App() {
   }
 
   // 1. Stage 1 & 2: FrontPage (Start, Course, Mode)
+  let content;
   if (!session) {
-    return <FrontPage onLaunchSession={handleLaunchSession} />;
+    content = <FrontPage onLaunchSession={handleLaunchSession} />;
+  } else if (!gameState.started) {
+    // 2. Stage 3: Name Entry
+    content = (
+      <>
+        <WorldMotion />
+        <NameEntry
+          onStart={startGame}
+          loading={gameState.isLoading}
+          onExit={handleExitToStart}
+          courseTitle={session?.courseTitle}
+        />
+      </>
+    );
+  } else {
+    // 3. Stage 4: Play Screen
+    content = (
+      <>
+        <WorldMotion />
+        <PlayScreen gameState={gameState} onAnswer={handleAnswer} onExit={handleExitToStart} />
+      </>
+    );
   }
 
-  // 2. Stage 3: Name Entry
-  if (!gameState.started) {
-    return <><WorldMotion /><NameEntry onStart={startGame} loading={gameState.isLoading} onExit={handleExitToStart} /></>;
-  }
-
-  // 3. Stage 4: Play Screen
-  return <><WorldMotion /><PlayScreen gameState={gameState} onAnswer={handleAnswer} onExit={handleExitToStart} /></>;
+  return (
+    <>
+      <ClickSound />
+      <FullscreenToggle />
+      {content}
+    </>
+  );
 }
