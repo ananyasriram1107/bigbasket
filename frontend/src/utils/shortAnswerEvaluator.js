@@ -4,26 +4,31 @@ export function evaluateShortAnswer(userAnswer = "", question) {
       passed: false,
       accuracy: 0,
       matchedKeywords: [],
-      missingKeywords: question.ideal_keywords || [],
+      missingKeywords: question.keyword_clusters?.map(c => c.name) || [],
       feedback: "No input provided."
     };
   }
 
   const normalized = userAnswer.toLowerCase();
+  const clusters = question.keyword_clusters || [];
   const matched = [];
   const missing = [];
 
-  (question.ideal_keywords || []).forEach((kw) => {
-    if (normalized.includes(kw.toLowerCase())) {
-      matched.push(kw);
+  clusters.forEach((cluster) => {
+    const hasMatch = (cluster.aliases || []).some((alias) =>
+      normalized.includes(alias.toLowerCase())
+    );
+    if (hasMatch) {
+      matched.push(cluster.name);
     } else {
-      missing.push(kw);
+      missing.push(cluster.name);
     }
   });
 
-  const threshold = question.threshold || 2;
+  const threshold = question.min_clusters_required || 2;
   const passed = matched.length >= threshold;
-  const accuracy = Math.round((matched.length / question.ideal_keywords.length) * 100);
+  const total = clusters.length || 1;
+  const accuracy = Math.round((matched.length / total) * 100);
 
   return {
     passed,
