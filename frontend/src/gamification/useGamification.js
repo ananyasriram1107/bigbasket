@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { checkBadges } from "./badges";
 import { streakBonusLabel, xpProgress } from "./gamification";
+import { addEarnedBadges } from "../utils/progressStore";
 
 export function useGamification(gameState) {
   const previousStateRef = useRef(gameState);
@@ -20,10 +21,12 @@ export function useGamification(gameState) {
       if (newBadges.length > 0) {
         const badge = newBadges[0];
 
+        const newCodes = newBadges.map((item) => item.code);
         earnedBadgeCodesRef.current = [
           ...earnedBadgeCodesRef.current,
-          ...newBadges.map((item) => item.code),
+          ...newCodes,
         ];
+        addEarnedBadges(newCodes);
 
         setActiveBadge(badge);
       }

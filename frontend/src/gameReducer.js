@@ -1,5 +1,8 @@
 export const initialGameState = {
   name: "",
+  courseId: null,
+  courseTitle: null,
+  mode: null,
   started: false,
   tier: 1,
   correctStreak: 0,
@@ -21,6 +24,9 @@ export function gameReducer(state, action) {
       return {
         ...state,
         name: action.payload.name,
+        courseId: action.payload.courseId,
+        courseTitle: action.payload.courseTitle,
+        mode: action.payload.mode,
         started: true,
         isLoading: true,
         error: null,
@@ -74,6 +80,9 @@ export function gameReducer(state, action) {
         isLoading: false,
         error: action.payload.message,
       };
+
+    case "RESET_GAME":
+      return initialGameState;
 
     default:
       return state;

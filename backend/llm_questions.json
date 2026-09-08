@@ -1,0 +1,197 @@
+[
+  {
+    "id": 90000,
+    "prompt": "Calculate the product of 7 and 11.",
+    "options": [
+      "77",
+      "78",
+      "80",
+      "82"
+    ],
+    "correct_answer": "77",
+    "tier": 1,
+    "source": "llm"
+  },
+  {
+    "id": 90001,
+    "prompt": "Calculate the area of a rectangle with a length of 15 units and a width of 7 units.",
+    "options": [
+      "60 square units",
+      "105 square units",
+      "110 square units",
+      "90 square units"
+    ],
+    "correct_answer": "105 square units",
+    "tier": 1,
+    "source": "llm"
+  },
+  {
+    "id": 90002,
+    "prompt": "A piece of string is 17 inches long. If you cut it into three equal parts, what is the length of each part?",
+    "options": [
+      "3.5 inches",
+      "6 inches",
+      "5.5 inches",
+      "4 inches"
+    ],
+    "correct_answer": "6 inches",
+    "tier": 1,
+    "source": "llm"
+  },
+  {
+    "id": 90003,
+    "prompt": "What is 15 + 27?",
+    "options": [
+      "42",
+      "45",
+      "32",
+      "52"
+    ],
+    "correct_answer": "42",
+    "tier": 1,
+    "source": "llm"
+  },
+  {
+    "id": 90004,
+    "prompt": "What is 15 + 22?",
+    "options": [
+      "37",
+      "38",
+      "39",
+      "40"
+    ],
+    "correct_answer": "37",
+    "tier": 1,
+    "source": "llm"
+  },
+  {
+    "id": 90005,
+    "prompt": "A man and a woman are standing on a seesaw. The seesaw is 12 feet long, and the woman is 5 feet tall. The man is 6 feet tall. How many feet apart are the man and the woman?",
+    "options": [
+      "2 feet",
+      "4 feet",
+      "6 feet",
+      "8 feet"
+    ],
+    "correct_answer": "6 feet",
+    "tier": 2,
+    "source": "llm"
+  },
+  {
+    "id": 90006,
+    "prompt": "What is 25 x 7?",
+    "options": [
+      "175",
+      "165",
+      "170",
+      "160"
+    ],
+    "correct_answer": "175",
+    "tier": 2,
+    "source": "llm"
+  },
+  {
+    "id": 90007,
+    "prompt": "A rectangular garden is 20 meters long and 15 meters wide. If a path of 1 meter width surrounds the garden, what is the total area of the garden including the path?",
+    "options": [
+      "315 square meters",
+      "305 square meters",
+      "300 square meters",
+      "320 square meters"
+    ],
+    "correct_answer": "315 square meters",
+    "tier": 2,
+    "source": "llm"
+  },
+  {
+    "id": 90008,
+    "prompt": "What is 100 x 90?",
+    "options": [
+      "8910",
+      "8900",
+      "8920",
+      "8905"
+    ],
+    "correct_answer": "8900",
+    "tier": 2,
+    "source": "llm"
+  },
+  {
+    "id": 90009,
+    "prompt": "A piece of string is 120 cm long. If the string is cut into 4 equal parts, what is the length of each part?",
+    "options": [
+      "15 cm",
+      "30 cm",
+      "20 cm",
+      "40 cm"
+    ],
+    "correct_answer": "30 cm",
+    "tier": 2,
+    "source": "llm"
+  },
+  {
+    "id": 90010,
+    "prompt": "A local library is organizing a book donation event. If 3 books are donated every hour, how many books will be donated in 4 hours?",
+    "options": [
+      "20",
+      "18",
+      "22",
+      "16"
+    ],
+    "correct_answer": "18",
+    "tier": 3,
+    "source": "llm"
+  },
+  {
+    "id": 90011,
+    "prompt": "A circle is inscribed in a right triangle with sides measuring 6 cm, 8 cm, and 10 cm. What is the radius of the circle?",
+    "options": [
+      "1 cm",
+      "2 cm",
+      "3 cm",
+      "4 cm"
+    ],
+    "correct_answer": "2 cm",
+    "tier": 3,
+    "source": "llm"
+  },
+  {
+    "id": 90012,
+    "prompt": "If 3x + 9 = 24, what is x?",
+    "options": [
+      "11",
+      "7",
+      "10",
+      "9"
+    ],
+    "correct_answer": "10",
+    "tier": 3,
+    "source": "llm"
+  },
+  {
+    "id": 90013,
+    "prompt": "A 30-foot ladder is placed against a wall. If the bottom of the ladder is 6 feet away from the wall, what is the height on the wall where the top of the ladder touches the wall?",
+    "options": [
+      "6 feet",
+      "12 feet",
+      "18 feet",
+      "24 feet"
+    ],
+    "correct_answer": "12 feet",
+    "tier": 3,
+    "source": "llm"
+  },
+  {
+    "id": 90014,
+    "prompt": "A rectangular garden is 6 meters long and 4 meters wide. If the length is increased by 2 meters and the width is decreased by 1 meter, what is the new area of the garden?",
+    "options": [
+      "20 square meters",
+      "24 square meters",
+      "28 square meters",
+      "32 square meters"
+    ],
+    "correct_answer": "28 square meters",
+    "tier": 3,
+    "source": "llm"
+  }
+]

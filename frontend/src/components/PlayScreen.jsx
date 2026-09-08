@@ -9,13 +9,15 @@ import explorerSprite from "../assets/mascot-correct.png";
 
 const QUESTION_SECONDS = 15;
 
-export default function PlayScreen({ gameState, onAnswer }) {
+export default function PlayScreen({ gameState, onAnswer, onViewResults }) {
   const [secondsLeft, setSecondsLeft] = useState(QUESTION_SECONDS);
   const [flashStatus, setFlashStatus] = useState(null);
+  const [shortAnswerText, setShortAnswerText] = useState("");
   const submittedRef = useRef(false);
 
   const question = gameState.currentQuestion;
-  const progress = Math.min(gameState.questionCount / QUEST_LENGTH, 1);
+  const correctCount = gameState.attempts.filter((attempt) => attempt.correct).length;
+  const progress = Math.min(correctCount / QUEST_LENGTH, 1);
 
   const {
     progressPercent,
@@ -27,32 +29,37 @@ export default function PlayScreen({ gameState, onAnswer }) {
   useEffect(() => {
     setSecondsLeft(QUESTION_SECONDS);
     submittedRef.current = false;
+    setShortAnswerText("");
   }, [question?.id]);
 
+  const isUntimed = question?.mode === "short_answer";
+
   useEffect(() => {
-    if (!question || gameState.isLoading || gameState.gameComplete) {
+    if (!question || gameState.isLoading || gameState.gameComplete || isUntimed) {
       return undefined;
     }
 
     const intervalId = setInterval(() => {
-      setSecondsLeft((currentSeconds) => {
-        if (currentSeconds <= 1) {
-          clearInterval(intervalId);
-
-          if (!submittedRef.current) {
-            submittedRef.current = true;
-            onAnswer(null, true);
-          }
-
-          return 0;
-        }
-
-        return currentSeconds - 1;
-      });
+      setSecondsLeft((currentSeconds) => Math.max(currentSeconds - 1, 0));
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [question?.id, gameState.isLoading, onAnswer]);
+  }, [question?.id, gameState.isLoading, gameState.gameComplete, isUntimed]);
+
+  useEffect(() => {
+    if (secondsLeft > 0 || !question || gameState.gameComplete || submittedRef.current || isUntimed) {
+      return;
+    }
+
+    // Timer ran out -- treat like a submitted (empty) answer, same as PlayScreen
+    // choosing not to answer. Kept in its own effect (reacting to secondsLeft
+    // hitting 0) instead of inside the setSecondsLeft updater above: calling
+    // onAnswer there triggers App's dispatch synchronously while React is
+    // still processing PlayScreen's own state update, which React flags as
+    // "Cannot update a component while rendering a different component".
+    submittedRef.current = true;
+    onAnswer(null, true);
+  }, [secondsLeft, question, gameState.gameComplete, onAnswer, isUntimed]);
 
   useEffect(() => {
     if (!gameState.lastResult) {
@@ -75,6 +82,15 @@ export default function PlayScreen({ gameState, onAnswer }) {
 
     submittedRef.current = true;
     onAnswer(answer, false);
+  }
+
+  function submitShortAnswer() {
+    if (gameState.isLoading || submittedRef.current || !shortAnswerText.trim()) {
+      return;
+    }
+
+    submittedRef.current = true;
+    onAnswer(shortAnswerText, false);
   }
 
   if (gameState.isLoading && !question) {
@@ -108,9 +124,9 @@ export default function PlayScreen({ gameState, onAnswer }) {
           progressPercent={progressPercent}
         />
 
-        <div className={secondsLeft <= 5 ? "timer timer--urgent" : "timer"}>
+        <div className={!isUntimed && secondsLeft <= 5 ? "timer timer--urgent" : "timer"}>
           <span className="eyebrow">Time</span>
-          <strong>{secondsLeft}s</strong>
+          <strong>{isUntimed ? "No limit" : `${secondsLeft}s`}</strong>
         </div>
       </header>
 
@@ -165,6 +181,9 @@ export default function PlayScreen({ gameState, onAnswer }) {
           <h1>Treasure unlocked!</h1>
           <strong>{gameState.totalXp} XP</strong>
           <span>You reached the treasure chest.</span>
+          <button type="button" className="next-question-button" onClick={onViewResults}>
+            View Quest Summary →
+          </button>
         </section>
       ) : <section className="question-card">
         <p className="question-number">
@@ -173,18 +192,37 @@ export default function PlayScreen({ gameState, onAnswer }) {
 
         <h1>{question.prompt}</h1>
 
-        <div className="answer-options">
-          {question.options.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => chooseAnswer(option)}
+        {question.mode === "short_answer" ? (
+          <div className="short-answer-input">
+            <textarea
+              value={shortAnswerText}
+              onChange={(event) => setShortAnswerText(event.target.value)}
               disabled={gameState.isLoading}
+              placeholder="Type your answer…"
+              rows={4}
+            />
+            <button
+              type="button"
+              onClick={submitShortAnswer}
+              disabled={gameState.isLoading || !shortAnswerText.trim()}
             >
-              {option}
+              Submit
             </button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="answer-options">
+            {(question.options || []).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => chooseAnswer(option)}
+                disabled={gameState.isLoading}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )}
       </section>}
     </main>
   );

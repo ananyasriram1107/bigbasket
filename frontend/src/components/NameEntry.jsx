@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function NameEntry({ onStart, loading }) {
+export default function NameEntry({ onStart, loading, courseTitle }) {
   const [name, setName] = useState("");
 
   function handleSubmit(event) {
@@ -18,8 +18,8 @@ export default function NameEntry({ onStart, loading }) {
   return (
     <main className="name-entry">
       <section className="name-entry__card">
-        <p className="eyebrow">Adaptive Maths Game</p>
-        <h1>Math Quest</h1>
+        <p className="eyebrow">Adaptive Learning Quest</p>
+        <h1>{courseTitle || "QuestVerse"}</h1>
         <p>Answer questions, earn XP, and level up.</p>
 
         <form onSubmit={handleSubmit}>
