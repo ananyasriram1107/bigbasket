@@ -1,4 +1,5 @@
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
+import FrontPage from "./pages/FrontPage"; // If FrontPage is directly in src, use: "./FrontPage"
 import NameEntry from "./components/NameEntry";
 import PlayScreen from "./components/PlayScreen";
 import { getFirstQuestion, submitAnswer } from "./api";
@@ -8,6 +9,7 @@ import "./App.css";
 export default function App() {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
   const questionStartedAtRef = useRef(Date.now());
+  const [session, setSession] = useState(null); // Tracks { courseId, courseTitle, mode }
 
   useEffect(() => {
     if (gameState.currentQuestion?.id) {
@@ -15,11 +17,23 @@ export default function App() {
     }
   }, [gameState.currentQuestion?.id]);
 
+  function handleLaunchSession(config) {
+    setSession(config);
+  }
+
   async function startGame(name) {
-    dispatch({ type: "START_GAME", payload: { name } });
+    dispatch({
+      type: "START_GAME",
+      payload: {
+        name,
+        courseId: session?.courseId,
+        mode: session?.mode,
+      },
+    });
 
     try {
-      const question = await getFirstQuestion();
+      // Passes the user's chosen course and mode to the question loader
+      const question = await getFirstQuestion(session?.courseId, session?.mode);
 
       dispatch({
         type: "QUESTION_LOADED",
@@ -52,6 +66,7 @@ export default function App() {
       wrong_streak: gameState.wrongStreak,
       total_xp: gameState.totalXp,
       time_taken_ms: timeTakenMs,
+      mode: session?.mode || "mcq",
     };
 
     try {
@@ -72,9 +87,16 @@ export default function App() {
     }
   }
 
+  // Stage 1 & 2: Show Start + Course/Mode Selection
+  if (!session) {
+    return <FrontPage onLaunchSession={handleLaunchSession} />;
+  }
+
+  // Stage 3: Show Name Entry
   if (!gameState.started) {
     return <NameEntry onStart={startGame} loading={gameState.isLoading} />;
   }
 
+  // Stage 4: Run the Game
   return <PlayScreen gameState={gameState} onAnswer={handleAnswer} />;
 }
