@@ -1,50 +1,6 @@
+import { evaluateShortAnswer } from "./utils/shortAnswerEvaluator"; // Adjust to "./shortAnswerEvaluator" if in the same folder
+
 const API_BASE_URL = "http://127.0.0.1:8000";
-
-async function fetchWithRetry(url, options = {}) {
-  try {
-    const response = await fetch(url, options);
-
-    if (!response.ok) {
-      throw new Error(`Request failed (${response.status})`);
-    }
-
-    return response;
-  } catch (firstError) {
-    await new Promise((resolve) => setTimeout(resolve, 700));
-
-    const retryResponse = await fetch(url, options);
-
-    if (!retryResponse.ok) {
-      throw new Error(
-        "Connection issue. Make sure the backend server is running."
-      );
-    }
-
-    return retryResponse;
-  }
-}
-
-export async function getFirstQuestion() {
-  const response = await fetchWithRetry(
-    `${API_BASE_URL}/question/first`
-  );
-
-  return response.json();
-}
-
-export async function submitAnswer(payload) {
-  const response = await fetchWithRetry(`${API_BASE_URL}/answer`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  return response.json();
-}
-
-import { evaluateShortAnswer } from "./shortAnswerEvaluator";
 
 export const mockQuestions = [
   // ================= OPERATING SYSTEMS =================
@@ -129,8 +85,8 @@ export const mockQuestions = [
   }
 ];
 
-export function getQuestionsByCourseAndMode(courseId, mode) {
-  return mockQuestions.filter(q => q.courseId === courseId && q.mode === mode);
+export function getQuestionsByCourseAndMode(courseId = "os", mode = "mcq") {
+  return mockQuestions.filter((q) => q.courseId === courseId && q.mode === mode);
 }
 
 export function checkAnswer(question, userAnswer) {
@@ -141,4 +97,64 @@ export function checkAnswer(question, userAnswer) {
     passed: String(userAnswer).trim().toLowerCase() === String(question.correctAnswer).trim().toLowerCase(),
     correctAnswer: question.correctAnswer
   };
+}
+
+async function fetchWithRetry(url, options = {}) {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) throw new Error(`Request failed (${response.status})`);
+    return response;
+  } catch (firstError) {
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    const retryResponse = await fetch(url, options);
+    if (!retryResponse.ok) {
+      throw new Error("Connection issue. Make sure the backend server is running.");
+    }
+    return retryResponse;
+  }
+}
+
+export async function getFirstQuestion(courseId = "os", mode = "mcq") {
+  try {
+    const response = await fetchWithRetry(
+      `${API_BASE_URL}/question/first?courseId=${courseId}&mode=${mode}`
+    );
+    return await response.json();
+  } catch (err) {
+    // Fallback directly to client mocks if backend isn't up
+    const matches = getQuestionsByCourseAndMode(courseId, mode);
+    return matches[0] || mockQuestions[0];
+  }
+}
+
+export async function submitAnswer(payload) {
+  try {
+    const response = await fetchWithRetry(`${API_BASE_URL}/answer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return await response.json();
+  } catch (err) {
+    // Client-side fallback resolution
+    const question = mockQuestions.find((q) => q.id === payload.question_id);
+    const evalRes = question ? checkAnswer(question, payload.answer) : { passed: false };
+    const isCorrect = evalRes.passed;
+
+    const coursePool = question 
+      ? getQuestionsByCourseAndMode(question.courseId, question.mode)
+      : mockQuestions;
+    const nextQ = coursePool.find((q) => q.id !== payload.question_id) || coursePool[0];
+
+    return {
+      correct: isCorrect,
+      xp_gained: isCorrect ? 25 : 0,
+      tier: isCorrect ? Math.min(payload.tier + 1, 3) : Math.max(payload.tier - 1, 1),
+      next_question: nextQ,
+      correct_streak: isCorrect ? payload.correct_streak + 1 : 0,
+      wrong_streak: isCorrect ? 0 : payload.wrong_streak + 1,
+      total_xp: payload.total_xp + (isCorrect ? 25 : 0),
+      evaluation: evalRes
+    };
+  }
 }
