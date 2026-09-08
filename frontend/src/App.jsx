@@ -3,7 +3,19 @@ import NameEntry from "./components/NameEntry";
 import PlayScreen from "./components/PlayScreen";
 import { getFirstQuestion, submitAnswer } from "./api";
 import { gameReducer, initialGameState } from "./gameReducer";
+import { QUEST_LENGTH } from "./questConfig";
 import "./App.css";
+
+function WorldMotion() {
+  return (
+    <div className="world-motion" aria-hidden="true">
+      <i className="world-motion__leaf world-motion__leaf--one" />
+      <i className="world-motion__leaf world-motion__leaf--two" />
+      <i className="world-motion__spark world-motion__spark--one" />
+      <i className="world-motion__spark world-motion__spark--two" />
+    </div>
+  );
+}
 
 export default function App() {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
@@ -62,6 +74,7 @@ export default function App() {
         payload: {
           ...result,
           time_taken_ms: timeTakenMs,
+          gameComplete: gameState.questionCount + 1 >= QUEST_LENGTH,
         },
       });
     } catch (error) {
@@ -73,8 +86,8 @@ export default function App() {
   }
 
   if (!gameState.started) {
-    return <NameEntry onStart={startGame} loading={gameState.isLoading} />;
+    return <><WorldMotion /><NameEntry onStart={startGame} loading={gameState.isLoading} /></>;
   }
 
-  return <PlayScreen gameState={gameState} onAnswer={handleAnswer} />;
+  return <><WorldMotion /><PlayScreen gameState={gameState} onAnswer={handleAnswer} /></>;
 }

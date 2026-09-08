@@ -10,6 +10,7 @@ export const initialGameState = {
   lastResult: null,
   attempts: [],
   questionCount: 0,
+  gameComplete: false,
   isLoading: false,
   error: null,
 };
@@ -51,7 +52,7 @@ export function gameReducer(state, action) {
         totalXp: result.total_xp,
         level: result.level,
         lastResult: result,
-        currentQuestion: result.next_question,
+        currentQuestion: action.payload.gameComplete ? null : result.next_question,
         attempts: [
           ...state.attempts,
           {
@@ -61,6 +62,7 @@ export function gameReducer(state, action) {
           },
         ],
         questionCount: state.questionCount + 1,
+        gameComplete: action.payload.gameComplete,
         isLoading: false,
         error: null,
       };
