@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
-import FrontPage from "./pages/FrontPage"; // If FrontPage is directly in src, use: "./FrontPage"
+import FrontPage from "./pages/FrontPage";
 import NameEntry from "./components/NameEntry";
 import PlayScreen from "./components/PlayScreen";
 import { getFirstQuestion, submitAnswer } from "./api";
@@ -9,7 +9,7 @@ import "./App.css";
 export default function App() {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
   const questionStartedAtRef = useRef(Date.now());
-  const [session, setSession] = useState(null); // Tracks { courseId, courseTitle, mode }
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
     if (gameState.currentQuestion?.id) {
@@ -32,9 +32,7 @@ export default function App() {
     });
 
     try {
-      // Passes the user's chosen course and mode to the question loader
       const question = await getFirstQuestion(session?.courseId, session?.mode);
-
       dispatch({
         type: "QUESTION_LOADED",
         payload: { question },
@@ -71,7 +69,6 @@ export default function App() {
 
     try {
       const result = await submitAnswer(payload);
-
       dispatch({
         type: "ANSWER_RESULT",
         payload: {
@@ -87,16 +84,16 @@ export default function App() {
     }
   }
 
-  // Stage 1 & 2: Show Start + Course/Mode Selection
+  // 1. Stage 1 & 2: FrontPage (Start, Course, Mode)
   if (!session) {
     return <FrontPage onLaunchSession={handleLaunchSession} />;
   }
 
-  // Stage 3: Show Name Entry
+  // 2. Stage 3: Name Entry
   if (!gameState.started) {
     return <NameEntry onStart={startGame} loading={gameState.isLoading} />;
   }
 
-  // Stage 4: Run the Game
+  // 3. Stage 4: Play Screen
   return <PlayScreen gameState={gameState} onAnswer={handleAnswer} />;
 }
