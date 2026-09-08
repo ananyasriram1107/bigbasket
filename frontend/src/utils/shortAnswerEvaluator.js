@@ -4,8 +4,8 @@ export function evaluateShortAnswer(userAnswer = "", question) {
       passed: false,
       accuracy: 0,
       matchedKeywords: [],
-      missingKeywords: question.keyword_clusters?.map(c => c.name) || [],
-      feedback: "No input provided."
+      missingKeywords: question.keyword_clusters?.map((c) => c.name) || [],
+      feedback: "No input provided.",
     };
   }
 
@@ -37,6 +37,6 @@ export function evaluateShortAnswer(userAnswer = "", question) {
     missingKeywords: missing,
     feedback: passed
       ? `Mastery verified! Key conceptual terms detected: ${matched.join(", ")}.`
-      : `Response missing foundational terms: ${missing.slice(0, 2).join(", ")}.`
+      : `Response missing foundational terms: ${missing.slice(0, 2).join(", ")}.`,
   };
 }
