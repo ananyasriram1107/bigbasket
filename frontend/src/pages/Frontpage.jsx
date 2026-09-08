@@ -4,40 +4,40 @@ const COURSES = [
   {
     id: "os",
     title: "Operating Systems",
-    code: "CS-301",
-    description: "Process scheduling, virtual memory, concurrency & kernel architecture.",
-    icon: "⚡",
+    short: "OS",
+    description: "Processes, memory, scheduling & concurrency",
+    icon: "⚙",
   },
   {
     id: "dbms",
     title: "Database Systems",
-    code: "CS-302",
-    description: "Relational algebra, indexing, ACID protocols & transaction recovery.",
-    icon: "🗄️",
+    short: "DB",
+    description: "SQL, transactions, indexing & normalization",
+    icon: "▣",
   },
   {
     id: "dsa",
     title: "Data Structures & Algorithms",
-    code: "CS-303",
-    description: "Dynamic programming, trees, graph theory & asymptotic analysis.",
-    icon: "🧠",
+    short: "DS",
+    description: "Trees, graphs, algorithms & complexity",
+    icon: "⌘",
   },
 ];
 
 const MODES = [
   {
     id: "mcq",
-    title: "Multiple Choice (MCQ)",
-    badge: "Standard",
-    detail: "Fast-paced objective questions with dynamic difficulty calibration.",
-    icon: "🎯",
+    title: "Multiple Choice",
+    description: "Choose the correct answer from four options.",
+    icon: "✓",
+    tag: "QUICK",
   },
   {
     id: "short_answer",
-    title: "Short Answers",
-    badge: "Concept Engine",
-    detail: "Synthesize concise explanations evaluated via semantic concept clusters.",
-    icon: "✍️",
+    title: "Short Answer",
+    description: "Explain the concept in your own words.",
+    icon: "✎",
+    tag: "CONCEPT",
   },
 ];
 
@@ -45,373 +45,640 @@ export default function FrontPage({ onLaunchSession }) {
   const [stage, setStage] = useState("start");
   const [selectedCourse, setSelectedCourse] = useState(null);
 
-  const handleSelectCourse = (course) => {
+  const selectCourse = (course) => {
     setSelectedCourse(course);
     setStage("modes");
   };
 
-  const handleSelectMode = (modeId) => {
-    if (onLaunchSession) {
-      onLaunchSession({
-        courseId: selectedCourse.id,
-        courseTitle: selectedCourse.title,
-        mode: modeId,
-      });
-    }
+  const selectMode = (mode) => {
+    onLaunchSession?.({
+      courseId: selectedCourse.id,
+      courseTitle: selectedCourse.title,
+      mode: mode.id,
+    });
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.windowCard}>
-        {/* Top Header Bar */}
-        <div style={styles.headerBar}>
-          <div style={styles.statusGroup}>
-            <span style={styles.liveIndicator} />
-            <span style={styles.headerTitle}>QUESTVERSE // CALIBRATION PROTOCOL</span>
-          </div>
-          <div style={styles.stageTag}>
-            {stage === "start" && "IDLE_INIT"}
-            {stage === "courses" && "SELECT_COURSE"}
-            {stage === "modes" && `ARMED // ${selectedCourse?.code}`}
+    <div className="quest-page">
+      <div className="quest-bg-grid" />
+
+      <header className="quest-nav">
+        <div className="brand">
+          <div className="brand-mark">Q</div>
+          <div>
+            <div className="brand-name">QUESTVERSE</div>
+            <div className="brand-sub">ADAPTIVE LEARNING</div>
           </div>
         </div>
 
-        {/* Dynamic Card Body */}
-        <div style={styles.bodyContent}>
-          {stage === "start" && (
-            <div style={styles.startSection}>
-              <div style={styles.titleBadge}>COGNITIVE ASSESSMENT SUITE</div>
-              <h1 style={styles.mainTitle}>QuestVerse</h1>
-              <p style={styles.heroSubtitle}>
-                Calibrate your computer science depth across automated MCQs and free-form concept explanations.
-              </p>
+        <div className="status">
+          <span className="status-dot" />
+          SYSTEM ONLINE
+        </div>
+      </header>
+
+      <main className="quest-main">
+        {stage === "start" && (
+          <section className="hero">
+            <div className="hero-eyebrow">YOUR NEXT CHALLENGE AWAITS</div>
+
+            <h1>
+              LEARN.
+              <br />
+              <span>PLAY.</span>
+              <br />
+              LEVEL UP.
+            </h1>
+
+            <p>
+              Master computer science through adaptive challenges that change
+              with your performance.
+            </p>
+
+            <button
+              className="start-button"
+              onClick={() => setStage("courses")}
+            >
+              <span>START ADVENTURE</span>
+              <b>→</b>
+            </button>
+
+            <div className="hero-stats">
+              <div>
+                <strong>03</strong>
+                <span>COURSES</span>
+              </div>
+              <div>
+                <strong>02</strong>
+                <span>GAME MODES</span>
+              </div>
+              <div>
+                <strong>∞</strong>
+                <span>CHALLENGES</span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {stage === "courses" && (
+          <section className="selection">
+            <div className="selection-top">
+              <div>
+                <div className="step-label">01 / 02</div>
+                <h2>Choose your battlefield.</h2>
+                <p>Select a subject to begin your quest.</p>
+              </div>
+
               <button
-                onClick={() => setStage("courses")}
-                style={styles.hugePrimaryButton}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                className="back-button"
+                onClick={() => setStage("start")}
               >
-                START ADVENTURE ▶
+                ← BACK
               </button>
             </div>
-          )}
 
-          {stage === "courses" && (
-            <div>
-              <div style={styles.modalHeadingRow}>
-                <div>
-                  <h2 style={styles.stageHeading}>Choose Your Course</h2>
-                  <p style={styles.stageDescription}>Select an academic discipline to begin evaluation</p>
-                </div>
+            <div className="course-grid">
+              {COURSES.map((course, index) => (
                 <button
-                  onClick={() => setStage("start")}
-                  style={styles.backButton}
+                  className="course-card"
+                  key={course.id}
+                  onClick={() => selectCourse(course)}
                 >
-                  ← Back
+                  <div className="card-number">0{index + 1}</div>
+
+                  <div className="course-icon">{course.icon}</div>
+
+                  <div className="course-content">
+                    <span className="course-short">{course.short}</span>
+                    <h3>{course.title}</h3>
+                    <p>{course.description}</p>
+                  </div>
+
+                  <div className="card-arrow">↗</div>
                 </button>
-              </div>
-
-              <div style={styles.cardsGrid}>
-                {COURSES.map((course) => (
-                  <div
-                    key={course.id}
-                    onClick={() => handleSelectCourse(course)}
-                    style={styles.optionCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#0284c7";
-                      e.currentTarget.style.backgroundColor = "#f0f9ff";
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#cbd5e1";
-                      e.currentTarget.style.backgroundColor = "#ffffff";
-                      e.currentTarget.style.transform = "translateY(0)";
-                    }}
-                  >
-                    <div style={styles.cardHeader}>
-                      <div style={styles.cardTitleGroup}>
-                        <span style={styles.cardIcon}>{course.icon}</span>
-                        <span style={styles.cardTitle}>{course.title}</span>
-                      </div>
-                      <span style={styles.codePill}>{course.code}</span>
-                    </div>
-                    <p style={styles.cardDescription}>{course.description}</p>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          )}
+          </section>
+        )}
 
-          {stage === "modes" && (
-            <div>
-              <div style={styles.modalHeadingRow}>
-                <div>
-                  <div style={styles.trackSubtitle}>
-                    TRACK: {selectedCourse?.title?.toUpperCase()} ({selectedCourse?.code})
-                  </div>
-                  <h2 style={styles.stageHeading}>Select Assessment Mode</h2>
-                </div>
+        {stage === "modes" && (
+          <section className="selection">
+            <div className="selection-top">
+              <div>
+                <div className="step-label">02 / 02</div>
+                <h2>Choose your challenge.</h2>
+                <p>
+                  <span className="selected-course">
+                    {selectedCourse?.short}
+                  </span>{" "}
+                  {selectedCourse?.title}
+                </p>
+              </div>
+
+              <button
+                className="back-button"
+                onClick={() => setStage("courses")}
+              >
+                ← CHANGE
+              </button>
+            </div>
+
+            <div className="mode-grid">
+              {MODES.map((mode) => (
                 <button
-                  onClick={() => setStage("courses")}
-                  style={styles.backButton}
+                  className="mode-card"
+                  key={mode.id}
+                  onClick={() => selectMode(mode)}
                 >
-                  Change Course
-                </button>
-              </div>
-
-              <div style={styles.cardsGrid}>
-                {MODES.map((mode) => (
-                  <div
-                    key={mode.id}
-                    onClick={() => handleSelectMode(mode.id)}
-                    style={styles.optionCard}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#059669";
-                      e.currentTarget.style.backgroundColor = "#f0fdf4";
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#cbd5e1";
-                      e.currentTarget.style.backgroundColor = "#ffffff";
-                      e.currentTarget.style.transform = "translateY(0)";
-                    }}
-                  >
-                    <div style={styles.cardHeader}>
-                      <div style={styles.cardTitleGroup}>
-                        <span style={styles.cardIcon}>{mode.icon}</span>
-                        <span style={styles.cardTitle}>{mode.title}</span>
-                      </div>
-                      <span style={mode.id === "short_answer" ? styles.modeBadgeGold : styles.modeBadgeBlue}>
-                        {mode.badge}
-                      </span>
-                    </div>
-                    <p style={styles.cardDescription}>{mode.detail}</p>
+                  <div className="mode-top">
+                    <div className="mode-icon">{mode.icon}</div>
+                    <span className="mode-tag">{mode.tag}</span>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
 
-        <div style={styles.footerBar}>
-          <span>VIRTUAL ACADEMY CALIBRATION // RETRO CS ENGINE</span>
-        </div>
-      </div>
+                  <h3>{mode.title}</h3>
+                  <p>{mode.description}</p>
+
+                  <div className="mode-footer">
+                    <span>SELECT MODE</span>
+                    <b>→</b>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
+
+      <footer className="quest-footer">
+        <span>QUESTVERSE v1.0</span>
+        <span>ADAPTIVE ENGINE READY</span>
+      </footer>
+
+      <style>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        .quest-page {
+          min-height: 100vh;
+          width: 100%;
+          background: #080b12;
+          color: #f8fafc;
+          font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+            BlinkMacSystemFont, "Segoe UI", sans-serif;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .quest-bg-grid {
+          position: absolute;
+          inset: 0;
+          opacity: 0.13;
+          background-image:
+            linear-gradient(#64748b 1px, transparent 1px),
+            linear-gradient(90deg, #64748b 1px, transparent 1px);
+          background-size: 50px 50px;
+          mask-image: linear-gradient(to bottom, black, transparent 85%);
+          pointer-events: none;
+        }
+
+        .quest-page::before {
+          content: "";
+          position: absolute;
+          width: 500px;
+          height: 500px;
+          border-radius: 50%;
+          background: #2563eb;
+          filter: blur(180px);
+          opacity: 0.12;
+          top: -250px;
+          left: 50%;
+          transform: translateX(-50%);
+          pointer-events: none;
+        }
+
+        .quest-nav {
+          height: 76px;
+          padding: 0 6vw;
+          border-bottom: 1px solid #1e293b;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: relative;
+          z-index: 2;
+        }
+
+        .brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .brand-mark {
+          width: 38px;
+          height: 38px;
+          border: 1px solid #3b82f6;
+          display: grid;
+          place-items: center;
+          font-size: 18px;
+          font-weight: 900;
+          color: #60a5fa;
+          transform: skew(-8deg);
+        }
+
+        .brand-name {
+          font-size: 14px;
+          font-weight: 900;
+          letter-spacing: 3px;
+        }
+
+        .brand-sub {
+          color: #64748b;
+          font-size: 8px;
+          letter-spacing: 2px;
+          margin-top: 2px;
+        }
+
+        .status {
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 2px;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .status-dot {
+          width: 6px;
+          height: 6px;
+          background: #22c55e;
+          border-radius: 50%;
+          box-shadow: 0 0 10px #22c55e;
+        }
+
+        .quest-main {
+          width: min(1100px, 88%);
+          min-height: calc(100vh - 136px);
+          margin: auto;
+          display: flex;
+          align-items: center;
+          position: relative;
+          z-index: 1;
+        }
+
+        .hero {
+          width: 100%;
+          padding: 60px 0;
+        }
+
+        .hero-eyebrow,
+        .step-label {
+          color: #60a5fa;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 3px;
+          margin-bottom: 18px;
+        }
+
+        .hero h1 {
+          margin: 0;
+          font-size: clamp(58px, 9vw, 110px);
+          line-height: 0.86;
+          letter-spacing: -6px;
+          font-weight: 950;
+        }
+
+        .hero h1 span {
+          color: #3b82f6;
+        }
+
+        .hero p {
+          max-width: 520px;
+          color: #94a3b8;
+          font-size: 16px;
+          line-height: 1.7;
+          margin: 30px 0;
+        }
+
+        .start-button {
+          border: 1px solid #3b82f6;
+          background: #2563eb;
+          color: white;
+          padding: 17px 22px;
+          min-width: 230px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 30px;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 2px;
+          cursor: pointer;
+          transition: 0.2s ease;
+        }
+
+        .start-button:hover {
+          background: #3b82f6;
+          transform: translateY(-3px);
+          box-shadow: 0 12px 35px rgba(37, 99, 235, 0.25);
+        }
+
+        .start-button b {
+          font-size: 20px;
+          font-weight: 400;
+        }
+
+        .hero-stats {
+          margin-top: 65px;
+          display: flex;
+          gap: 55px;
+          border-top: 1px solid #1e293b;
+          padding-top: 22px;
+          width: fit-content;
+        }
+
+        .hero-stats div {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .hero-stats strong {
+          font-size: 22px;
+        }
+
+        .hero-stats span {
+          color: #64748b;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 2px;
+        }
+
+        .selection {
+          width: 100%;
+          padding: 45px 0;
+        }
+
+        .selection-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 40px;
+        }
+
+        .selection-top h2 {
+          margin: 0;
+          font-size: clamp(32px, 5vw, 54px);
+          letter-spacing: -2px;
+          line-height: 1;
+        }
+
+        .selection-top p {
+          color: #64748b;
+          margin: 12px 0 0;
+          font-size: 14px;
+        }
+
+        .selected-course {
+          color: #60a5fa;
+          font-weight: 900;
+        }
+
+        .back-button {
+          background: transparent;
+          color: #64748b;
+          border: 1px solid #334155;
+          padding: 11px 16px;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 1.5px;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .back-button:hover {
+          color: white;
+          border-color: #64748b;
+        }
+
+        .course-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+        }
+
+        .course-card {
+          min-height: 340px;
+          padding: 22px;
+          background: #0d121c;
+          border: 1px solid #1e293b;
+          color: white;
+          text-align: left;
+          cursor: pointer;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          transition: 0.25s ease;
+        }
+
+        .course-card:hover {
+          border-color: #3b82f6;
+          background: #101827;
+          transform: translateY(-6px);
+        }
+
+        .card-number {
+          color: #475569;
+          font-family: monospace;
+          font-size: 11px;
+        }
+
+        .course-icon {
+          font-size: 48px;
+          color: #60a5fa;
+          font-weight: 300;
+        }
+
+        .course-short {
+          color: #3b82f6;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 2px;
+        }
+
+        .course-content h3 {
+          font-size: 21px;
+          margin: 7px 0;
+          line-height: 1.15;
+        }
+
+        .course-content p {
+          color: #64748b;
+          font-size: 12px;
+          line-height: 1.5;
+          margin: 0;
+        }
+
+        .card-arrow {
+          position: absolute;
+          right: 20px;
+          bottom: 20px;
+          color: #475569;
+          font-size: 20px;
+          transition: 0.2s;
+        }
+
+        .course-card:hover .card-arrow {
+          color: #60a5fa;
+          transform: translate(3px, -3px);
+        }
+
+        .mode-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 18px;
+        }
+
+        .mode-card {
+          background: #0d121c;
+          border: 1px solid #1e293b;
+          padding: 30px;
+          min-height: 300px;
+          color: white;
+          text-align: left;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          transition: 0.25s ease;
+        }
+
+        .mode-card:hover {
+          border-color: #3b82f6;
+          background: #101827;
+          transform: translateY(-6px);
+        }
+
+        .mode-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .mode-icon {
+          width: 52px;
+          height: 52px;
+          border: 1px solid #334155;
+          display: grid;
+          place-items: center;
+          font-size: 25px;
+          color: #60a5fa;
+        }
+
+        .mode-tag {
+          color: #64748b;
+          border: 1px solid #334155;
+          padding: 5px 9px;
+          font-size: 8px;
+          font-weight: 900;
+          letter-spacing: 1.5px;
+        }
+
+        .mode-card h3 {
+          font-size: 28px;
+          margin: 35px 0 10px;
+        }
+
+        .mode-card p {
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.6;
+          max-width: 400px;
+          margin: 0;
+        }
+
+        .mode-footer {
+          margin-top: auto;
+          padding-top: 25px;
+          border-top: 1px solid #1e293b;
+          display: flex;
+          justify-content: space-between;
+          color: #64748b;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 2px;
+        }
+
+        .mode-card:hover .mode-footer {
+          color: #60a5fa;
+        }
+
+        .mode-footer b {
+          font-size: 18px;
+          font-weight: 400;
+        }
+
+        .quest-footer {
+          height: 60px;
+          border-top: 1px solid #1e293b;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0 6vw;
+          color: #475569;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 2px;
+          position: relative;
+          z-index: 2;
+        }
+
+        @media (max-width: 800px) {
+          .course-grid,
+          .mode-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .course-card {
+            min-height: 220px;
+          }
+
+          .selection-top {
+            gap: 20px;
+          }
+
+          .hero h1 {
+            letter-spacing: -3px;
+          }
+        }
+
+        @media (max-width: 500px) {
+          .quest-nav {
+            padding: 0 20px;
+          }
+
+          .status {
+            display: none;
+          }
+
+          .quest-main {
+            width: 90%;
+          }
+
+          .hero-stats {
+            gap: 25px;
+          }
+
+          .selection-top {
+            flex-direction: column;
+          }
+
+          .quest-footer {
+            padding: 0 20px;
+          }
+        }
+      `}</style>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: "100vh",
-    width: "100vw",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "24px",
-    boxSizing: "border-box",
-    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  },
-  windowCard: {
-    width: "100%",
-    maxWidth: "800px",
-    backgroundColor: "rgba(255, 255, 255, 0.97)",
-    borderRadius: "20px",
-    border: "4px solid #1e293b",
-    boxShadow: "0 24px 48px rgba(0,0,0,0.35), 0 8px 0 #0f172a",
-    overflow: "hidden",
-    backdropFilter: "blur(10px)",
-  },
-  headerBar: {
-    backgroundColor: "#0f172a",
-    padding: "14px 22px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottom: "3px solid #334155",
-  },
-  statusGroup: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-  },
-  liveIndicator: {
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    backgroundColor: "#22c55e",
-    boxShadow: "0 0 10px #22c55e",
-    display: "inline-block",
-  },
-  headerTitle: {
-    color: "#e2e8f0",
-    fontSize: "12px",
-    fontWeight: "700",
-    letterSpacing: "1.5px",
-  },
-  stageTag: {
-    color: "#38bdf8",
-    fontFamily: "monospace",
-    fontSize: "12px",
-    fontWeight: "700",
-  },
-  bodyContent: {
-    padding: "36px 32px",
-  },
-  startSection: {
-    textAlign: "center",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "16px 8px",
-  },
-  titleBadge: {
-    display: "inline-block",
-    padding: "6px 16px",
-    backgroundColor: "#e2e8f0",
-    color: "#334155",
-    borderRadius: "999px",
-    fontSize: "11px",
-    fontWeight: "700",
-    letterSpacing: "2px",
-    marginBottom: "16px",
-  },
-  mainTitle: {
-    fontSize: "44px",
-    fontWeight: "900",
-    color: "#0f172a",
-    margin: "0 0 12px 0",
-  },
-  heroSubtitle: {
-    fontSize: "15px",
-    color: "#475569",
-    maxWidth: "520px",
-    lineHeight: "1.6",
-    margin: "0 0 32px 0",
-  },
-  hugePrimaryButton: {
-    backgroundColor: "#0284c7",
-    color: "#ffffff",
-    border: "3px solid #0369a1",
-    boxShadow: "0 6px 0 #075985",
-    borderRadius: "14px",
-    padding: "18px 48px",
-    fontSize: "16px",
-    fontWeight: "800",
-    letterSpacing: "1px",
-    cursor: "pointer",
-    transition: "all 0.15s ease-in-out",
-  },
-  modalHeadingRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: "24px",
-    paddingBottom: "16px",
-    borderBottom: "2px solid #e2e8f0",
-  },
-  stageHeading: {
-    fontSize: "24px",
-    fontWeight: "800",
-    color: "#0f172a",
-    margin: "0 0 6px 0",
-  },
-  stageDescription: {
-    fontSize: "14px",
-    color: "#64748b",
-    margin: 0,
-  },
-  trackSubtitle: {
-    fontSize: "11px",
-    fontWeight: "700",
-    letterSpacing: "1.5px",
-    color: "#0284c7",
-    marginBottom: "4px",
-  },
-  backButton: {
-    backgroundColor: "#f1f5f9",
-    color: "#475569",
-    border: "2px solid #cbd5e1",
-    borderRadius: "10px",
-    padding: "10px 18px",
-    fontSize: "13px",
-    fontWeight: "700",
-    cursor: "pointer",
-  },
-  cardsGrid: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  optionCard: {
-    backgroundColor: "#ffffff",
-    border: "2px solid #cbd5e1",
-    borderRadius: "14px",
-    padding: "20px 22px",
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-    boxShadow: "0 3px 6px rgba(0,0,0,0.04)",
-  },
-  cardHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "8px",
-  },
-  cardTitleGroup: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-  },
-  cardIcon: {
-    fontSize: "24px",
-  },
-  cardTitle: {
-    fontSize: "18px",
-    fontWeight: "700",
-    color: "#0f172a",
-  },
-  codePill: {
-    backgroundColor: "#f1f5f9",
-    border: "1px solid #cbd5e1",
-    color: "#475569",
-    fontSize: "12px",
-    fontWeight: "700",
-    padding: "4px 10px",
-    borderRadius: "6px",
-  },
-  cardDescription: {
-    fontSize: "14px",
-    color: "#64748b",
-    lineHeight: "1.5",
-    margin: 0,
-  },
-  modeBadgeBlue: {
-    backgroundColor: "#eff6ff",
-    color: "#2563eb",
-    border: "1px solid #bfdbfe",
-    fontSize: "12px",
-    fontWeight: "700",
-    padding: "4px 10px",
-    borderRadius: "6px",
-  },
-  modeBadgeGold: {
-    backgroundColor: "#fffbeb",
-    color: "#b45309",
-    border: "1px solid #fde68a",
-    fontSize: "12px",
-    fontWeight: "700",
-    padding: "4px 10px",
-    borderRadius: "6px",
-  },
-  footerBar: {
-    backgroundColor: "#f8fafc",
-    borderTop: "2px solid #e2e8f0",
-    padding: "12px 20px",
-    textAlign: "center",
-    color: "#94a3b8",
-    fontSize: "11px",
-    fontWeight: "600",
-    letterSpacing: "1.5px",
-  },
-};
